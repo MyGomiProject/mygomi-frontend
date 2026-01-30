@@ -1,6 +1,8 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Header from '../components/Header';
 import ParallaxBackground from '../components/ParallaxBackground';
+import Map from '../components/Map';
 import './HomePage.css';
 
 const HomePage: React.FC = () => {
@@ -54,22 +56,13 @@ const HomePage: React.FC = () => {
 
             <div className="panel panel-right">
               <div className="panel-header">
-                <h2 className="panel-title">근처 나눔 지도</h2>
+                <Link to="/sharing" className="panel-title-link">
+                  <h2 className="panel-title">근처 나눔 지도</h2>
+                </Link>
                 <span className="panel-subtitle">우리 동네 Free Sharing Market</span>
               </div>
               <div className="panel-placeholder map-placeholder">
-                <div className="map-area">
-                  <div className="map-block map-water" />
-                  <div className="map-block map-park" />
-                  <div className="map-block map-town" />
-                  <div className="map-pin pin-one" />
-                  <div className="map-pin pin-two" />
-                  <div className="map-pin pin-three" />
-                </div>
-                <p className="panel-description">
-                  나눔 물품 등록과 픽업 장소가 지도 위에 표시되어 주변 이웃과 쉽게 연결될
-                  수 있어요.
-                </p>
+                <Map />
               </div>
             </div>
           </div>
