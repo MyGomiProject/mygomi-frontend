@@ -20,6 +20,7 @@ interface MapProps {
     position: [number, number];
     title: string;
     description?: string;
+    imageUrl?: string;
   }>;
 }
 
@@ -35,18 +36,21 @@ const Map: React.FC<MapProps> = ({
       position: [35.6762, 139.6503] as [number, number],
       title: '나눔 물품 1',
       description: '전자레인지 나눔합니다',
+      imageUrl: 'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?w=200&h=200&fit=crop',
     },
     {
       id: '2',
       position: [35.6800, 139.6500] as [number, number],
       title: '나눔 물품 2',
       description: '책장 나눔합니다',
+      imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=200&h=200&fit=crop',
     },
     {
       id: '3',
       position: [35.6720, 139.6520] as [number, number],
       title: '나눔 물품 3',
       description: '자전거 나눔합니다',
+      imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=200&fit=crop',
     },
   ];
 
@@ -66,10 +70,13 @@ const Map: React.FC<MapProps> = ({
           <Marker key={marker.id} position={marker.position}>
             <Popup>
               <div className="map-popup">
-                <h3 className="map-popup-title">{marker.title}</h3>
-                {marker.description && (
-                  <p className="map-popup-description">{marker.description}</p>
+                {marker.imageUrl && (
+                  <div className="map-popup-image">
+                    <img src={marker.imageUrl} alt={marker.title} />
+                  </div>
                 )}
+                <h3 className="map-popup-title">{marker.title}</h3>
+                
               </div>
             </Popup>
           </Marker>
