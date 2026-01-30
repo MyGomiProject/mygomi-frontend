@@ -29,7 +29,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import './App.css'; // 추가적인 CSS 커스텀이 필요할 경우
 
 const dayEmojiMap: Record<number, string> = {
-  2: "💪", 
+  2: "💪",
   4: "💪",
 };
 

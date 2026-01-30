@@ -1,0 +1,404 @@
+.home-page {
+  min-height: 100vh;
+  position: relative;
+}
+
+.main-content {
+  padding-top: 80px;
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 5rem 2rem 3rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero-content {
+  text-align: center;
+  width: 100%;
+  max-width: 800px;
+}
+
+.hero-title {
+  font-size: 3rem;
+  font-weight: bold;
+  color: #2c2c2c;
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+  text-align: center;
+}
+
+.hero-subtitle {
+  font-size: 1.3rem;
+  color: #555;
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+.hero-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 3rem;
+  align-items: center;
+}
+
+.hero-left {
+  text-align: left;
+}
+
+.hero-right {
+  display: flex;
+  justify-content: center;
+}
+
+.search-container {
+  display: flex;
+  max-width: 600px;
+  margin: 0 auto;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 1rem;
+  border-radius: 50px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  background: transparent;
+  color: #333;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.search-button {
+  background: #66bb6a;
+  color: white;
+  border: none;
+  padding: 0.8rem 2rem;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.search-button:hover {
+  background: #4caf50;
+}
+
+.japan-card {
+  width: 320px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 24px;
+  padding: 1.5rem 1.5rem 1.2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+}
+
+.japan-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1.2rem;
+}
+
+.japan-card-pill {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 0.15rem 0.8rem;
+  border-radius: 999px;
+  background: #ffecb3;
+  color: #8d6e63;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.japan-card-city {
+  font-size: 0.8rem;
+  color: #757575;
+}
+
+.japan-map-illustration {
+  position: relative;
+  height: 150px;
+  margin-bottom: 1rem;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #bbdefb, #c8e6c9);
+  overflow: hidden;
+}
+
+.japan-island {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50px;
+}
+
+.japan-main {
+  width: 120px;
+  height: 40px;
+  top: 45%;
+  left: 35%;
+  transform: rotate(-20deg);
+}
+
+.japan-hokkaido {
+  width: 60px;
+  height: 28px;
+  top: 20%;
+  left: 45%;
+  transform: rotate(10deg);
+}
+
+.japan-kyushu {
+  width: 55px;
+  height: 26px;
+  bottom: 18%;
+  left: 30%;
+  transform: rotate(-35deg);
+}
+
+.recycle-icon {
+  position: absolute;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+}
+
+.recycle-pet {
+  top: 18%;
+  left: 12%;
+  background: #42a5f5;
+}
+
+.recycle-burnable {
+  bottom: 18%;
+  right: 10%;
+  background: #ef5350;
+}
+
+.recycle-can {
+  top: 55%;
+  right: 18%;
+  background: #ffb74d;
+}
+
+.japan-card-footer {
+  font-size: 0.85rem;
+  color: #616161;
+  line-height: 1.4;
+}
+
+.japan-card-text {
+  margin: 0;
+}
+
+.bottom-section {
+  max-width: 1200px;
+  margin: 3rem auto 4rem;
+  padding: 0 2rem 2rem;
+}
+
+.bottom-inner {
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 24px;
+  padding: 2rem;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 2rem;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.panel-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #333333;
+}
+
+.panel-subtitle {
+  font-size: 0.85rem;
+  color: #757575;
+}
+
+.panel-placeholder {
+  flex: 1;
+  border-radius: 18px;
+  background: #fafafa;
+  border: 1px dashed #e0e0e0;
+  padding: 1.2rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.6rem;
+}
+
+.calendar-day {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 0.5rem 0.4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.calendar-day-label {
+  font-size: 0.75rem;
+  color: #757575;
+}
+
+.calendar-badge {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #81c784, #66bb6a);
+  opacity: 0.45;
+}
+
+.panel-description {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #9e9e9e;
+}
+
+.map-area {
+  position: relative;
+  height: 150px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #e3f2fd;
+}
+
+.map-block {
+  position: absolute;
+  border-radius: 16px;
+}
+
+.map-water {
+  background: #bbdefb;
+  inset: 12% 30% 18% 5%;
+}
+
+.map-park {
+  background: #c8e6c9;
+  inset: 45% 6% 8% 45%;
+}
+
+.map-town {
+  background: #ffe0b2;
+  inset: 25% 12% 40% 40%;
+}
+
+.map-pin {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: #ef5350;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+.pin-one {
+  top: 26%;
+  left: 32%;
+}
+
+.pin-two {
+  top: 52%;
+  right: 24%;
+}
+
+.pin-three {
+  bottom: 20%;
+  left: 52%;
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 4rem 1.5rem 2.5rem;
+  }
+
+  .hero-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem;
+  }
+
+  .hero-left {
+    text-align: center;
+  }
+
+  .search-container {
+    margin-top: 1.5rem;
+    flex-direction: column;
+    border-radius: 20px;
+  }
+
+  .search-button {
+    width: 100%;
+  }
+
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.1rem;
+  }
+
+  .japan-card {
+    width: 100%;
+  }
+
+  .bottom-section {
+    padding: 0 1.5rem 2.5rem;
+  }
+
+  .bottom-inner {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 1.8rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+}
