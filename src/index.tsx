@@ -3,6 +3,12 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+if (process.env.NODE_ENV === 'development') {
+  // 개발 환경에서 MSW를 사용해 백엔드 목업 제공
+  import('./mocks/browser').then(({ worker }) => {
+    worker.start();
+  });
+}
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
