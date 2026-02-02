@@ -1,3 +1,6 @@
+# MyGomi　Project
+<img width="1710" height="1107" alt="스크린샷 2026-02-02 오전 11 52 47" src="https://github.com/user-attachments/assets/2f0758f7-69bf-4b47-a9a9-67a21f36ad02" />
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
