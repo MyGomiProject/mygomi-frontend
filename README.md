@@ -1,3 +1,6 @@
+# MyGomi（私のゴミ）
+<img width="1710" height="1107" alt="스크린샷 2026-02-02 오전 11 52 47" src="https://github.com/user-attachments/assets/f8473205-a93f-4e03-92f6-89007c4d1c98" />
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
