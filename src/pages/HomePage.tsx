@@ -1,8 +1,9 @@
-import React, { useState } from 'react'; // 
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
 import Header from '../components/Header';
 import ParallaxBackground from '../components/ParallaxBackground';
 import Map from '../components/Map';
+import Loading from '../components/Loading';
+import ErrorDisplay from '../components/ErrorDisplay';
 import { useWeeklyCalendar } from '../hooks/useCalendar';
 import './HomePage.css';
 
@@ -89,19 +90,25 @@ const HomePage: React.FC = () => {
                 <span className="panel-subtitle">{currentYear}년 {currentMonth + 1}월 배출 요일</span>
               </div>
               <div className="panel-placeholder calendar-placeholder">
-                <div className="calendar-grid">
-                  {/* 요일 헤더: 화살표 뒤에 소괄호 '('를 쓰는 것이 포인트! */}
-                  {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
-                    <div key={day} className="calendar-weekday-header">
-                      {day}
-                    </div>
-                  ))}
+                {isLoading ? (
+                  <Loading message="캘린더 데이터를 불러오는 중..." />
+                ) : error ? (
+                  <ErrorDisplay
+                    title="캘린더 로드 실패"
+                    message={error.message || '캘린더 데이터를 불러오는데 실패했습니다.'}
+                    onRetry={() => window.location.reload()}
+                  />
+                ) : (
+                  <div className="calendar-grid">
+                    {/* 요일 헤더 */}
+                    {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
+                      <div key={day} className="calendar-weekday-header">
+                        {day}
+                      </div>
+                    ))}
 
-                  {/* 날짜 데이터 렌더링 부분 */}
-                  {isLoading ? (
-                    <div className="calendar-loading">로딩 중...</div>
-                  ) : (
-                    calendarDaysRange.map((d, index) => {
+                    {/* 날짜 데이터 렌더링 부분 */}
+                    {calendarDaysRange.map((d, index) => {
                       const dayEvents = Array.isArray(events) ? events.filter(e => e.start === d.dateStr) : [];
                       const isToday = d.dateStr === formatDate(new Date());
 
@@ -125,9 +132,9 @@ const HomePage: React.FC = () => {
                           </div>
                         </div>
                       );
-                    })
-                  )}
-                </div>
+                    })}
+                  </div>
+                )}
               </div>
             </div>
 

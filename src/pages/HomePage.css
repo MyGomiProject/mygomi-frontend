@@ -41,173 +41,6 @@
   text-align: center;
 }
 
-.hero-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-  gap: 3rem;
-  align-items: center;
-}
-
-.hero-left {
-  text-align: left;
-}
-
-.hero-right {
-  display: flex;
-  justify-content: center;
-}
-
-.search-container {
-  display: flex;
-  max-width: 600px;
-  margin: 0 auto;
-  gap: 1rem;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 1rem;
-  border-radius: 50px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.search-input {
-  flex: 1;
-  border: none;
-  outline: none;
-  padding: 0.8rem 1.5rem;
-  font-size: 1rem;
-  background: transparent;
-  color: #333;
-}
-
-.search-input::placeholder {
-  color: #999;
-}
-
-.search-button {
-  background: #66bb6a;
-  color: white;
-  border: none;
-  padding: 0.8rem 2rem;
-  border-radius: 50px;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.search-button:hover {
-  background: #4caf50;
-}
-
-.japan-card {
-  width: 320px;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 24px;
-  padding: 1.5rem 1.5rem 1.2rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-}
-
-.japan-card-header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  margin-bottom: 1.2rem;
-}
-
-.japan-card-pill {
-  display: inline-flex;
-  align-self: flex-start;
-  padding: 0.15rem 0.8rem;
-  border-radius: 999px;
-  background: #ffecb3;
-  color: #8d6e63;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.japan-card-city {
-  font-size: 0.8rem;
-  color: #757575;
-}
-
-.japan-map-illustration {
-  position: relative;
-  height: 150px;
-  margin-bottom: 1rem;
-  border-radius: 18px;
-  background: linear-gradient(135deg, #bbdefb, #c8e6c9);
-  overflow: hidden;
-}
-
-.japan-island {
-  position: absolute;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 50px;
-}
-
-.japan-main {
-  width: 120px;
-  height: 40px;
-  top: 45%;
-  left: 35%;
-  transform: rotate(-20deg);
-}
-
-.japan-hokkaido {
-  width: 60px;
-  height: 28px;
-  top: 20%;
-  left: 45%;
-  transform: rotate(10deg);
-}
-
-.japan-kyushu {
-  width: 55px;
-  height: 26px;
-  bottom: 18%;
-  left: 30%;
-  transform: rotate(-35deg);
-}
-
-.recycle-icon {
-  position: absolute;
-  padding: 0.2rem 0.6rem;
-  border-radius: 999px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: #ffffff;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
-}
-
-.recycle-pet {
-  top: 18%;
-  left: 12%;
-  background: #42a5f5;
-}
-
-.recycle-burnable {
-  bottom: 18%;
-  right: 10%;
-  background: #ef5350;
-}
-
-.recycle-can {
-  top: 55%;
-  right: 18%;
-  background: #ffb74d;
-}
-
-.japan-card-footer {
-  font-size: 0.85rem;
-  color: #616161;
-  line-height: 1.4;
-}
-
-.japan-card-text {
-  margin: 0;
-}
-
 .bottom-section {
   max-width: 1200px;
   margin: 3rem auto 4rem;
@@ -285,7 +118,7 @@
 }
 
 .calendar-day {
-  min-height: 100px; /* 시안처럼 세로로 길게 */
+  min-height: 100px;
   border: 0.5px solid #f0f0f0;
   padding: 8px 4px;
   display: flex;
@@ -294,10 +127,14 @@
   gap: 8px;
 }
 
-/* 이번 달이 아닌 날짜는 흐리게 */
 .calendar-day.not-current {
   background: #fafafa;
   color: #ccc;
+}
+
+.calendar-day.is-today {
+  border: 2px solid #ff7043;
+  background: #fff9f7;
 }
 
 .day-number {
@@ -305,13 +142,14 @@
   font-weight: 500;
 }
 
-/* 오늘 날짜 강조 (주황색 테두리) */
-.calendar-day.is-today {
-  border: 2px solid #ff7043;
-  background: #fff9f7;
+.waste-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  align-items: center;
 }
 
-/* 쓰레기 아이콘과 텍스트 스타일 */
 .waste-item {
   display: flex;
   flex-direction: column;
@@ -320,12 +158,12 @@
 }
 
 .waste-emoji {
-  font-size: 1.5rem; /* 아이콘을 크게! */
+  font-size: 1.5rem;
 }
 
 .waste-label-text {
   font-size: 0.7rem;
-  color: #66bb6a; /* 녹색 계열 글씨 */
+  color: #66bb6a;
   font-weight: bold;
 }
 
@@ -351,108 +189,33 @@
   border-color: #66bb6a;
 }
 
-/* 요일 헤더 스타일 */
 .calendar-weekday-header {
   text-align: center;
   font-weight: bold;
   font-size: 0.9rem;
   padding: 10px 0;
   color: #555;
-  border-bottom: 1px solid #eee; /* 숫자와 구분선 */
+  border-bottom: 1px solid #eee;
 }
 
-/* 일요일(첫 번째 열) 빨간색 */
 .calendar-weekday-header:nth-child(1) {
   color: #ff5252;
 }
 
-/* 토요일(일곱 번째 열) 파란색 */
 .calendar-weekday-header:nth-child(7) {
   color: #448aff;
 }
 
-/* 여기까지 cal */
-
-.panel-description {
-  margin: 0;
-  font-size: 0.8rem;
-  color: #0e0e0e;
-}
-
-.map-area {
-  position: relative;
-  height: 150px;
-  border-radius: 16px;
-  overflow: hidden;
-  background: #e3f2fd;
-}
-
-.map-block {
-  position: absolute;
-  border-radius: 16px;
-}
-
-.map-water {
-  background: #bbdefb;
-  inset: 12% 30% 18% 5%;
-}
-
-.map-park {
-  background: #c8e6c9;
-  inset: 45% 6% 8% 45%;
-}
-
-.map-town {
-  background: #ffe0b2;
-  inset: 25% 12% 40% 40%;
-}
-
-.map-pin {
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  border-radius: 999px;
-  background: #ef5350;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
-}
-
-.pin-one {
-  top: 26%;
-  left: 32%;
-}
-
-.pin-two {
-  top: 52%;
-  right: 24%;
-}
-
-.pin-three {
-  bottom: 20%;
-  left: 52%;
+.calendar-loading {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 2rem;
+  color: #666;
 }
 
 @media (max-width: 768px) {
   .hero-section {
     padding: 4rem 1.5rem 2.5rem;
-  }
-
-  .hero-layout {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 2.5rem;
-  }
-
-  .hero-left {
-    text-align: center;
-  }
-
-  .search-container {
-    margin-top: 1.5rem;
-    flex-direction: column;
-    border-radius: 20px;
-  }
-
-  .search-button {
-    width: 100%;
   }
 
   .hero-title {
@@ -461,10 +224,6 @@
 
   .hero-subtitle {
     font-size: 1.1rem;
-  }
-
-  .japan-card {
-    width: 100%;
   }
 
   .bottom-section {

@@ -1,24 +1,34 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import ErrorBoundary from './components/ErrorBoundary';
 import HomePage from './pages/HomePage';
 import SharingPage from './pages/SharingPage';
 import AddressInputPage from './pages/AddressInputPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import TestPage from './pages/TestPage';
 import { AuthProvider } from './contexts/AuthContext';
 import './App.css';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
-          <div className="App">
-            <Routes>
-              {/* 팀원의 기본 페이지 구조를 따릅니다 */}
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <BrowserRouter>
+            <div className="App">
+              <Routes>
+                {/* 팀원의 기본 페이지 구조를 따릅니다 */}
               <Route path="/" element={<HomePage />} />
               <Route path="/sharing" element={<SharingPage />} />
               <Route path="/address-input" element={<AddressInputPage />} />
@@ -26,11 +36,15 @@ function App() {
               {/* 인증 페이지 추가 */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
-            </Routes>
-          </div>
-        </BrowserRouter>
-      </AuthProvider>
-    </QueryClientProvider>
+              
+              {/* 테스트 페이지 (개발용) */}
+              <Route path="/test" element={<TestPage />} />
+              </Routes>
+            </div>
+          </BrowserRouter>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
