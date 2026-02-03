@@ -154,7 +154,7 @@
   margin-bottom: 2rem;
   max-height: 400px;
   overflow-y: auto;
-  padding-right: 0.5rem;
+  padding: 0.5rem 0.5rem 0.5rem 0;
 }
 
 .ward-card {
@@ -167,6 +167,8 @@
   font-size: 0.95rem;
   color: #333;
   font-weight: 500;
+  position: relative;
+  z-index: 1;
 }
 
 .ward-card:hover {
@@ -174,6 +176,7 @@
   background: #f1f8f4;
   transform: translateY(-2px);
   box-shadow: 0 2px 8px rgba(102, 187, 106, 0.2);
+  z-index: 2;
 }
 
 .address-form {
