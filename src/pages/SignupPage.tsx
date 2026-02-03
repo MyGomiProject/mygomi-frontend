@@ -3,6 +3,8 @@ import { useForm } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
 import { authApi } from '../api/auth';
 import { setAuthToken } from '../api/client';
+import ParallaxBackground from '../components/ParallaxBackground';
+import './Auth.css';
 
 // 1. 폼 데이터 타입 정의 (비밀번호 확인 추가)
 type SignupFormInputs = {
@@ -64,6 +66,7 @@ const SignupPage: React.FC = () => {
 
   return (
     <div className="auth-page signup-page">
+      <ParallaxBackground />
       <form className="auth-form" onSubmit={handleSubmit(onSubmit)} aria-label="signup-form">
         <h2>회원가입</h2>
 

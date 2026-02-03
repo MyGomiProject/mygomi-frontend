@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import './LoginPage.css';
+import ParallaxBackground from '../components/ParallaxBackground';
+import './Auth.css';
 
 type FormData = {
   email: string;
@@ -28,6 +29,7 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="auth-page login-page">
+      <ParallaxBackground />
       <form className="auth-form" onSubmit={handleSubmit(onSubmit)} aria-label="login-form">
         <h2>로그인</h2>
 
