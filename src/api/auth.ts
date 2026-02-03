@@ -35,8 +35,8 @@ export const authApi = {
     return resp.data.data;
   },
 
-  signup: async (req: SignupRequest): Promise<{ userId: number }> => {
-    const resp = await apiClient.post<ApiResponse<{ userId: number }>>('/auth/signup', req);
+  signup: async (req: SignupRequest): Promise<{ userId: number; token: string }> => {
+    const resp = await apiClient.post<ApiResponse<{ userId: number; token: string }>>('/auth/signup', req);
     return resp.data.data;
   },
 };

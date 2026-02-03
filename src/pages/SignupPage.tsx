@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { authApi } from '../api/auth';
+import { setAuthToken } from '../api/client';
 
 // 1. 폼 데이터 타입 정의 (비밀번호 확인 추가)
 type SignupFormInputs = {
@@ -12,42 +13,11 @@ type SignupFormInputs = {
 };
 
 // =================================================================
-// [내부 컴포넌트] 내 동네 설정 (Onboarding)
-// =================================================================
-const LocationSetup = () => {
-  const navigate = useNavigate();
-
-  const handleComplete = () => {
-    alert('동네 설정이 완료되었습니다! (메인으로 이동)');
-    navigate('/'); 
-  };
-
-  return (
-    <div className="auth-page location-setup-page">
-      <div className="auth-form">
-        <h2>📍 동네 설정</h2>
-        <p className="muted">마이고미 서비스를 이용하기 위해 동네를 설정해주세요.</p>
-        
-        <div style={{ margin: '20px 0' }}>
-           {/* 예시 UI */}
-           <input type="text" placeholder="예: 춘천시" className="input-field" style={{ width: '100%', padding: '10px' }} />
-        </div>
-
-        <button onClick={handleComplete} className="btn-primary">
-          설정 완료 및 시작하기
-        </button>
-      </div>
-    </div>
-  );
-};
-
-// =================================================================
 // [메인] 회원가입 페이지
 // =================================================================
 const SignupPage: React.FC = () => {
-  // 단계 관리: 'signup' -> 'location'
-  const [step, setStep] = useState<'signup' | 'location'>('signup');
   const [serverError, setServerError] = useState<string | null>(null);
+  const navigate = useNavigate();
   
   const { 
     register, 
@@ -56,7 +26,7 @@ const SignupPage: React.FC = () => {
     formState: { errors, isValid, isSubmitting } 
   } = useForm<SignupFormInputs>({ mode: 'onChange' });
 
-  const auth = useAuth();
+  // const auth = useAuth(); // 실제 회원가입 API 호출 시 사용
   
   // 비밀번호 실시간 비교를 위해 값 관찰
   const password = watch('password');
@@ -64,26 +34,33 @@ const SignupPage: React.FC = () => {
   const onSubmit = async (data: SignupFormInputs) => {
     setServerError(null);
     try {
-      // 1. 실제 회원가입 요청 (기존 로직 활용)
-      // await auth.signup(data); 
-      
-      // (테스트를 위해 잠시 주석 처리하고 가짜 성공 처리. 실제로는 위 auth.signup을 쓰세요)
-      console.log('회원가입 요청:', data);
-      await new Promise(r => setTimeout(r, 1000)); 
+      // 1. 회원가입 API 호출
+      const response = await authApi.signup({
+        email: data.email,
+        password: data.password,
+        nickname: data.nickname,
+      });
 
-      // 2. 성공 시 바로 페이지 이동하지 않고 '동네 설정' 단계로 변경
-      setStep('location');
+      // 2. 토큰 저장
+      if (response.token) {
+        setAuthToken(response.token);
+      }
+
+      // 3. 성공 시 주소 입력 페이지로 이동 (회원가입 데이터 전달)
+      navigate('/address-input', { 
+        state: { 
+          signupData: {
+            email: data.email,
+            nickname: data.nickname,
+          }
+        } 
+      });
       
     } catch (err: any) {
       const msg = err?.response?.data?.message || '회원가입에 실패했습니다.';
       setServerError(msg);
     }
   };
-
-  // 단계가 'location'이면 동네 설정 컴포넌트 렌더링
-  if (step === 'location') {
-    return <LocationSetup />;
-  }
 
   return (
     <div className="auth-page signup-page">
