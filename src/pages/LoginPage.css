@@ -1,0 +1,11 @@
+.auth-page { display: flex; justify-content: center; align-items: center; height: 80vh; }
+.auth-form { width: 360px; padding: 24px; border: 1px solid #eee; border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+.auth-form h2 { margin: 0 0 12px 0; }
+.auth-form label { display: block; margin-top: 12px; font-size: 14px; }
+.auth-form input { width: 100%; padding: 8px 10px; margin-top: 6px; border: 1px solid #ddd; border-radius: 4px; }
+.btn-primary { margin-top: 16px; width: 100%; padding: 10px; background: #2f7df6; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+.btn-primary:disabled { opacity: 0.6; }
+.error { color: #d9534f; margin-top: 6px; font-size: 13px; }
+.server-error { margin-top: 10px; }
+.muted { margin-top: 12px; color: #666; font-size: 13px; }
+.success { color: #2e7d32; margin-top: 8px; }
