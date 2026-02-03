@@ -1,8 +1,15 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './Header.css';
 
 const Header: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleLoginClick = () => {
+    // 로그인 페이지 이동
+    navigate('/login');
+  };
+
   return (
     <header className="header">
       <div className="header-container">
@@ -17,7 +24,8 @@ const Header: React.FC = () => {
           <Link to="/sharing" className="nav-link">나눔</Link>
           <a href="#notice" className="nav-link">신고</a>
           <a href="#mypage" className="nav-link">마이페이지</a>
-          <button className="login-button">로그인</button>
+          <button className="login-button" onClick={handleLoginClick}>로그인
+          </button>
         </nav>
       </div>
     </header>
