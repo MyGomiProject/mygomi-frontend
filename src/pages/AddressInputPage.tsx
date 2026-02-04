@@ -77,27 +77,35 @@ const AddressInputPage: React.FC = () => {
     setError(null);
 
     try {
-      // 1. 지역 검색 (area 매칭)
-      const areas = await areaApi.searchAreas({
-        prefecture: formData.prefecture,
-        ward: formData.ward,
-        town: formData.town,
-        chome: formData.chome,
-        banchi: formData.banchiText,
-      });
+      // 1. 지역 검색 (area 매칭) - 선택적, 실패해도 계속 진행
+      let areas: any[] = [];
+      try {
+        areas = await areaApi.searchAreas({
+          prefecture: formData.prefecture,
+          ward: formData.ward,
+          town: formData.town,
+          chome: formData.chome,
+          banchi: formData.banchiText,
+        });
+        console.log('매칭된 지역:', areas);
+      } catch (areaError) {
+        console.warn('지역 검색 실패 (무시하고 계속 진행):', areaError);
+        // 지역 검색 실패해도 주소 등록은 계속 진행
+      }
 
-      // 2. 주소 등록
+      // 2. 주소 등록 (POST /api/user-addresses)
       const address = await addressApi.createAddress({
         prefecture: formData.prefecture,
         ward: formData.ward,
         town: formData.town,
         chome: formData.chome,
-        banchiText: formData.banchiText,
+        banchi: formData.banchiText, // banchi 필드로 전달
+        lat: 0, // 임시 값 (나중에 지오코딩으로 실제 좌표 가져오기)
+        lng: 0, // 임시 값
         isPrimary: true, // 첫 주소는 대표 주소로 설정
       });
 
       console.log('주소 등록 완료:', address);
-      console.log('매칭된 지역:', areas);
 
       // 저장 후 메인 페이지로 이동
       navigate('/');

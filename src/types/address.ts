@@ -21,7 +21,7 @@ export interface CreateAddressRequest {
   ward: string;
   town?: string;
   chome?: string;
-  banchiText?: string;
+  banchi?: string;  // banchiText 대신 banchi 사용
   lat?: number;
   lng?: number;
   isPrimary?: boolean;
@@ -32,17 +32,20 @@ export interface UpdateAddressRequest {
   ward?: string;
   town?: string;
   chome?: string;
-  banchiText?: string;
+  banchi?: string;  // banchiText 대신 banchi 사용
   lat?: number;
   lng?: number;
   isPrimary?: boolean;
 }
 
 export interface AddressResponse {
-  data: UserAddress;
+  id: number;
+  fullAddress: string;
+  isPrimary: boolean;
+  areaId: number | null;
 }
 
 export interface AddressListResponse {
-  data: UserAddress[];
+  data: AddressResponse[];
 }
 
