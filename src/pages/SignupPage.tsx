@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
 import { authApi } from '../api/auth';
-import { setAuthToken } from '../api/client';
 import ParallaxBackground from '../components/ParallaxBackground';
 import './Auth.css';
 
@@ -36,19 +35,16 @@ const SignupPage: React.FC = () => {
   const onSubmit = async (data: SignupFormInputs) => {
     setServerError(null);
     try {
-      // 1. 회원가입 API 호출
+      // 1. 회원가입 API 호출 (문서에 따르면 응답은 string: "회원가입이 완료되었습니다.")
       const response = await authApi.signup({
         email: data.email,
         password: data.password,
         nickname: data.nickname,
       });
 
-      // 2. 토큰 저장
-      if (response.token) {
-        setAuthToken(response.token);
-      }
+      console.log('회원가입 완료:', response);
 
-      // 3. 성공 시 주소 입력 페이지로 이동 (회원가입 데이터 전달)
+      // 2. 성공 시 주소 입력 페이지로 이동 (회원가입 데이터 전달)
       navigate('/address-input', { 
         state: { 
           signupData: {
