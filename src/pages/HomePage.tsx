@@ -77,17 +77,31 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
+        <section className="search-section">
+          <div className="search-container">
+            <input
+              type="text"
+              className="search-input"
+              placeholder="쓰레기 종류를 검색해보세요 (예: 플라스틱, 종이, 가연성)"
+            />
+            <button className="search-button" type="button">
+              검색
+            </button>
+          </div>
+        </section>
+
         <section className="bottom-section">
           <div className="bottom-inner">
             <div className="panel panel-left">
               <div className="panel-header">
-                <h2 className="panel-title">마짬 분리수거 캘린더</h2>
-                <div className="calendar-controls">
-                  <button onClick={handlePrevMonth}>&lt; 저번달</button>
-                  <button onClick={handleGoToday}>오늘로</button>
-                  <button onClick={handleNextMonth}>다음달 &gt;</button>
+                <div className="panel-header-top">
+                  <h2 className="panel-title">{currentYear}년 {currentMonth + 1}월 배출 요일</h2>
+                  <div className="calendar-controls">
+                    <button onClick={handlePrevMonth}>&lt; 이전달</button>
+                    <button onClick={handleGoToday}>오늘</button>
+                    <button onClick={handleNextMonth}>다음달 &gt;</button>
+                  </div>
                 </div>
-                <span className="panel-subtitle">{currentYear}년 {currentMonth + 1}월 배출 요일</span>
               </div>
               <div className="panel-placeholder calendar-placeholder">
                 {isLoading ? (
