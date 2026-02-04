@@ -20,21 +20,25 @@ export const handlers = [
     });
   }),
 
-  // REQ-01 로그인/회원가입
-  http.post('/api/auth/login', async ({ request }) => {
-    const body = await request.json();
-    const { email, password } = body as { email?: string; password?: string };
+  // REQ-01 로그인/회원가입 
+http.post('/api/auth/login', async ({ request }) => {
+    const body = await request.json() as { email?: string; password?: string };
+    const { email, password } = body;
 
     // 간단한 샘플 유효성: 테스트 계정
     if (email === 'test@example.com' && password === 'password') {
       return HttpResponse.json({
         data: {
-          token: 'fake-token-123',
-          user: { id: 1, email, nickname: '테스트유저' },
+          accessToken: 'fake-token-123',
+          userId: 1,
+        },
+        meta: {
+          timestamp: new Date().toISOString(),
         },
       });
     }
 
+    // 실제 API와 동일한 형식으로 에러 응답
     return HttpResponse.json({
       message: '이메일 또는 비밀번호가 올바르지 않습니다.',
     }, { status: 401 });

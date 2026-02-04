@@ -3,10 +3,23 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-if (process.env.NODE_ENV === 'development') {
-  // 개발 환경에서 MSW를 사용해 백엔드 목업 제공
+
+// MSW 비활성화: 실제 API를 사용하려면 아래 코드를 주석 처리하세요
+// if (process.env.NODE_ENV === 'development') {
+//   // 개발 환경에서 MSW를 사용해 백엔드 목업 제공
+//   import('./mocks/browser').then(({ worker }) => {
+//     worker.start({
+//       onUnhandledRequest: 'bypass', // 실제 API로 요청 전달
+//     });
+//   });
+// }
+
+// 실제 API를 사용하려면 MSW를 완전히 비활성화
+if (process.env.NODE_ENV === 'development' && process.env.REACT_APP_USE_MSW === 'true') {
   import('./mocks/browser').then(({ worker }) => {
-    worker.start();
+    worker.start({
+      onUnhandledRequest: 'bypass', // 실제 API로 요청 전달
+    });
   });
 }
 

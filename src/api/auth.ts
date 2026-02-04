@@ -21,22 +21,44 @@ export interface SignupRequest {
 }
 
 export interface LoginResponse {
-  token: string;
-  user: {
-    id: number;
-    email: string;
-    nickname: string;
-  };
+  accessToken: string;  // JWT 토큰
+  userId: number;       // 사용자 ID
 }
 
 export const authApi = {
   login: async (req: LoginRequest): Promise<LoginResponse> => {
-    const resp = await apiClient.post<ApiResponse<LoginResponse>>('/auth/login', req);
-    return resp.data.data;
+    console.log('API 호출:', '/api/auth/login', req);
+    console.log('Base URL:', apiClient.defaults.baseURL);
+    try {
+      const resp = await apiClient.post<ApiResponse<LoginResponse>>('/api/auth/login', req);
+      console.log('API 응답:', resp.data);
+      return resp.data.data;
+    } catch (error: any) {
+      console.error('API 에러 상세:', {
+        message: error.message,
+        response: error.response,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+      throw error;
+    }
   },
 
-  signup: async (req: SignupRequest): Promise<{ userId: number; token: string }> => {
-    const resp = await apiClient.post<ApiResponse<{ userId: number; token: string }>>('/auth/signup', req);
-    return resp.data.data;
+  signup: async (req: SignupRequest): Promise<string> => {
+    console.log('회원가입 API 호출:', '/api/auth/signup', req);
+    console.log('Base URL:', apiClient.defaults.baseURL);
+    try {
+      const resp = await apiClient.post<ApiResponse<string>>('/api/auth/signup', req);
+      console.log('회원가입 API 응답:', resp.data);
+      return resp.data.data;
+    } catch (error: any) {
+      console.error('회원가입 API 에러 상세:', {
+        message: error.message,
+        response: error.response,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+      throw error;
+    }
   },
 };
