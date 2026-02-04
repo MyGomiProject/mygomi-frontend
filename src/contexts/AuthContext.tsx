@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authApi, LoginRequest, SignupRequest, LoginResponse } from '../api/auth';
+import { userApi } from '../api/user';
 import { setAuthToken } from '../api/client';
 
 interface User {
@@ -22,12 +23,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('authToken'));
 
+  // 토큰이 있으면 사용자 정보 가져오기
   useEffect(() => {
-    if (token) {
-      setAuthToken(token);
-      // TODO: /api/users/me API를 호출하여 사용자 정보를 받아오기
-      // 현재는 userId만 있으므로, 필요시 사용자 정보 API를 호출해야 합니다.
-    }
+    const fetchUserInfo = async () => {
+      if (token) {
+        setAuthToken(token);
+        try {
+          const userInfo = await userApi.getMe();
+          console.log('초기 사용자 정보 가져오기 성공:', userInfo);
+          
+          // userInfo가 유효한지 확인
+          if (userInfo && userInfo.id) {
+            setUser({
+              id: userInfo.id,
+              email: userInfo.email || '',
+              nickname: userInfo.nickname || '',
+            });
+          } else {
+            console.warn('사용자 정보가 유효하지 않음:', userInfo);
+            // 토큰이 유효하지 않으면 제거
+            setToken(null);
+            setAuthToken(null);
+            localStorage.removeItem('authToken');
+          }
+        } catch (error: any) {
+          console.error('사용자 정보 가져오기 실패:', error);
+          console.error('에러 상세:', {
+            message: error?.message,
+            response: error?.response,
+            status: error?.response?.status,
+            data: error?.response?.data,
+          });
+          // 토큰이 유효하지 않으면 제거
+          setToken(null);
+          setAuthToken(null);
+          localStorage.removeItem('authToken');
+        }
+      }
+    };
+
+    fetchUserInfo();
   }, [token]);
 
   const login = async (payload: LoginRequest): Promise<void> => {
@@ -37,13 +72,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('AuthContext login 응답:', res);
       setToken(res.accessToken);
       setAuthToken(res.accessToken);
-      // TODO: res.userId를 사용하여 사용자 정보 API 호출
-      // 임시로 userId만 저장
-      setUser({
-        id: res.userId,
-        email: payload.email, // 임시로 이메일만 저장
-        nickname: '', // 사용자 정보 API에서 가져와야 함
-      });
+      
+      // 로그인 성공 후 사용자 정보 가져오기
+      try {
+        const userInfo = await userApi.getMe();
+        console.log('사용자 정보 가져오기 성공:', userInfo);
+        
+        // userInfo가 유효한지 확인
+        if (userInfo && userInfo.id) {
+          setUser({
+            id: userInfo.id,
+            email: userInfo.email || payload.email,
+            nickname: userInfo.nickname || '',
+          });
+        } else {
+          console.warn('사용자 정보가 유효하지 않음:', userInfo);
+          // 사용자 정보가 유효하지 않으면 기본값 사용
+          setUser({
+            id: res.userId,
+            email: payload.email,
+            nickname: '',
+          });
+        }
+      } catch (error: any) {
+        console.error('사용자 정보 가져오기 실패:', error);
+        console.error('에러 상세:', {
+          message: error?.message,
+          response: error?.response,
+          status: error?.response?.status,
+          data: error?.response?.data,
+        });
+        // 사용자 정보를 가져오지 못해도 로그인은 성공한 것으로 처리
+        setUser({
+          id: res.userId,
+          email: payload.email,
+          nickname: '',
+        });
+      }
     } catch (error) {
       console.error('AuthContext login 에러:', error);
       throw error;
