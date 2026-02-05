@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
-import { authApi } from '../api/auth';
+import { useAuth } from '../contexts/AuthContext';
 import ParallaxBackground from '../components/ParallaxBackground';
 import './Auth.css';
 
@@ -19,6 +19,7 @@ type SignupFormInputs = {
 const SignupPage: React.FC = () => {
   const [serverError, setServerError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { signup, login } = useAuth();
   
   const { 
     register, 
@@ -26,8 +27,6 @@ const SignupPage: React.FC = () => {
     watch,
     formState: { errors, isValid, isSubmitting } 
   } = useForm<SignupFormInputs>({ mode: 'onChange' });
-
-  // const auth = useAuth(); // 실제 회원가입 API 호출 시 사용
   
   // 비밀번호 실시간 비교를 위해 값 관찰
   const password = watch('password');
@@ -35,8 +34,8 @@ const SignupPage: React.FC = () => {
   const onSubmit = async (data: SignupFormInputs) => {
     setServerError(null);
     try {
-      // 1. 회원가입 API 호출 (문서에 따르면 응답은 string: "회원가입이 완료되었습니다.")
-      const response = await authApi.signup({
+      // 1. 회원가입 API 호출
+      const response = await signup({
         email: data.email,
         password: data.password,
         nickname: data.nickname,
@@ -44,15 +43,30 @@ const SignupPage: React.FC = () => {
 
       console.log('회원가입 완료:', response);
 
-      // 2. 성공 시 주소 입력 페이지로 이동 (회원가입 데이터 전달)
-      navigate('/address-input', { 
-        state: { 
-          signupData: {
-            email: data.email,
-            nickname: data.nickname,
-          }
-        } 
-      });
+      // 2. 회원가입 성공 후 자동으로 로그인하여 토큰 획득
+      try {
+        await login({
+          email: data.email,
+          password: data.password,
+        });
+        console.log('자동 로그인 완료, 토큰 획득됨');
+
+        // 3. 토큰이 저장된 후 주소 입력 페이지로 이동
+        navigate('/address-input', { 
+          state: { 
+            signupData: {
+              email: data.email,
+              nickname: data.nickname,
+            }
+          } 
+        });
+      } catch (loginError: any) {
+        console.error('자동 로그인 실패:', loginError);
+        // 로그인 실패해도 회원가입은 성공했으므로 로그인 페이지로 이동
+        setServerError('회원가입은 완료되었지만 자동 로그인에 실패했습니다. 로그인해주세요.');
+        // 또는 로그인 페이지로 리다이렉트
+        // navigate('/login', { state: { message: '회원가입이 완료되었습니다. 로그인해주세요.' } });
+      }
       
     } catch (err: any) {
       const msg = err?.response?.data?.message || '회원가입에 실패했습니다.';
