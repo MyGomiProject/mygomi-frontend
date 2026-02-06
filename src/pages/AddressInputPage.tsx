@@ -107,8 +107,10 @@ const AddressInputPage: React.FC = () => {
 
       console.log('주소 등록 완료:', address);
 
-      // 저장 후 메인 페이지로 이동
-      navigate('/');
+      // 저장 후 어디서 왔는지에 따라 다른 페이지로 이동
+      // location.state에 redirectTo가 있으면 그곳으로, 없으면 기본적으로 마이페이지로
+      const redirectTo = location.state?.redirectTo || '/mypage';
+      navigate(redirectTo);
     } catch (err: any) {
       console.error('주소 등록 실패:', err);
       const errorMessage = err?.response?.data?.message || '주소 등록에 실패했습니다. 다시 시도해주세요.';

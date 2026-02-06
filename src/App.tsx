@@ -7,6 +7,7 @@ import SharingPage from './pages/SharingPage';
 import AddressInputPage from './pages/AddressInputPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import MyPage from './pages/MyPage';
 import TestPage from './pages/TestPage';
 import { AuthProvider } from './contexts/AuthContext';
 import './App.css';
@@ -36,6 +37,9 @@ function App() {
               {/* 인증 페이지 추가 */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
+              
+              {/* 마이페이지 */}
+              <Route path="/mypage" element={<MyPage />} />
               
               {/* 테스트 페이지 (개발용) */}
               <Route path="/test" element={<TestPage />} />
