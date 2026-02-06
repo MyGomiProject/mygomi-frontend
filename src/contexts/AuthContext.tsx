@@ -1,12 +1,18 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authApi, LoginRequest, SignupRequest, LoginResponse } from '../api/auth';
+import { authApi, LoginRequest, SignupRequest } from '../api/auth';
 import { userApi } from '../api/user';
 import { setAuthToken } from '../api/client';
 
+// 1. 유저 인터페이스 정의 (가이드 문서의 주소 설계를 반영함)
 interface User {
   id: number;
   email: string;
   nickname: string;
+  address?: {
+    id: number;
+    ward: string;
+    isPrimary: boolean;
+  };
 }
 
 interface AuthContextValue {
@@ -23,6 +29,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('authToken'));
 
+  // 공통 로직: 백엔드에서 받은 addresses 배열 중 대표 주소를 추출
+ const mapUserWithAddress = (userInfo: any, defaultEmail?: string): User => {
+    const primaryAddress = userInfo.addresses?.find((addr: any) => addr.isPrimary);
+
+    return {
+      id: userInfo.id,
+      email: userInfo.email || defaultEmail || '',
+      nickname: userInfo.nickname || '',
+      address: primaryAddress ? {
+        id: primaryAddress.id,
+        ward: primaryAddress.ward,
+        isPrimary: primaryAddress.isPrimary
+      } : undefined
+    };
+  };
+
+  // [Helper] 토큰 만료 등 치명적 에러 시 세션 초기화
+  const clearSession = () => {
+    setUser(null);
+    setToken(null);
+    setAuthToken(null);
+    localStorage.removeItem('authToken');
+  };
+
   // 토큰이 있으면 사용자 정보 가져오기
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -34,34 +64,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           // userInfo가 유효한지 확인
           if (userInfo && userInfo.id) {
-            setUser({
-              id: userInfo.id,
-              email: userInfo.email || '',
-              nickname: userInfo.nickname || '',
-            });
+              setUser(mapUserWithAddress(userInfo));
           } else {
             console.warn('사용자 정보가 유효하지 않음:', userInfo);
-            // 토큰이 유효하지 않으면 제거
-            setToken(null);
-            setAuthToken(null);
-            localStorage.removeItem('authToken');
+            clearSession(); // 초기 로드 실패 시에는 안전을 위해 세션 초기화
           }
-        } catch (error: any) {
-          console.error('사용자 정보 가져오기 실패:', error);
-          console.error('에러 상세:', {
-            message: error?.message,
-            response: error?.response,
-            status: error?.response?.status,
-            data: error?.response?.data,
-          });
-          // 토큰이 유효하지 않으면 제거
-          setToken(null);
-          setAuthToken(null);
-          localStorage.removeItem('authToken');
+        } catch (error) {
+          clearSession(); // 초기 로드 실패 시에는 안전을 위해 세션 초기화
         }
       }
     };
-
     fetchUserInfo();
   }, [token]);
 
@@ -70,44 +82,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('AuthContext login 호출:', payload);
       const res = await authApi.login(payload);
       console.log('AuthContext login 응답:', res);
+      const accessToken = res.accessToken;
+
+      localStorage.setItem('authToken', accessToken);
       setToken(res.accessToken);
       setAuthToken(res.accessToken);
       
       // 로그인 성공 후 사용자 정보 가져오기
       try {
         const userInfo = await userApi.getMe();
-        console.log('사용자 정보 가져오기 성공:', userInfo);
-        
-        // userInfo가 유효한지 확인
         if (userInfo && userInfo.id) {
-          setUser({
-            id: userInfo.id,
-            email: userInfo.email || payload.email,
-            nickname: userInfo.nickname || '',
-          });
+          // 여기서도 매핑 함수를 사용하여 주소 정보를 포함시킵니다.
+          setUser(mapUserWithAddress(userInfo, payload.email));
         } else {
-          console.warn('사용자 정보가 유효하지 않음:', userInfo);
-          // 사용자 정보가 유효하지 않으면 기본값 사용
-          setUser({
-            id: res.userId,
-            email: payload.email,
-            nickname: '',
-          });
+          setUser({ id: res.userId, email: payload.email, nickname: '' });
         }
       } catch (error: any) {
         console.error('사용자 정보 가져오기 실패:', error);
-        console.error('에러 상세:', {
-          message: error?.message,
-          response: error?.response,
-          status: error?.response?.status,
-          data: error?.response?.data,
-        });
-        // 사용자 정보를 가져오지 못해도 로그인은 성공한 것으로 처리
-        setUser({
-          id: res.userId,
-          email: payload.email,
-          nickname: '',
-        });
+        // 상세 정보 조회 실패 시에도 로그인은 유지 (Fallback)
+        setUser({ id: res.userId, email: payload.email, nickname: '' });
       }
     } catch (error) {
       console.error('AuthContext login 에러:', error);
@@ -121,9 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
-    setUser(null);
-    setToken(null);
-    setAuthToken(null);
+    clearSession();
   };
 
   return (
