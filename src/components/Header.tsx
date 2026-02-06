@@ -32,7 +32,7 @@ const Header: React.FC = () => {
           <a href="#waste-guide" className="nav-link">분리수거 정보</a>
           <Link to="/sharing" className="nav-link">나눔</Link>
           <a href="#notice" className="nav-link">신고</a>
-          <a href="#mypage" className="nav-link">마이페이지</a>
+          <Link to="/mypage" className="nav-link">마이페이지</Link>
           {token ? (
             <div className="user-menu">
               <span className="user-nickname">{displayName}</span>
