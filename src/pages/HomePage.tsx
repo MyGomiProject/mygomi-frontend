@@ -5,9 +5,20 @@ import Map from '../components/Map';
 import Loading from '../components/Loading';
 import ErrorDisplay from '../components/ErrorDisplay';
 import { useWeeklyCalendar } from '../hooks/useCalendar';
+import { useNavigate } from 'react-router-dom';
+import SearchBox from '../components/SearchBox';
 import './HomePage.css';
 
 const HomePage: React.FC = () => {
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearch = () => {
+    if (!searchQuery.trim()) return;
+    // 검색 페이지로 이동하면서 쿼리 파라미터를 들고 갑니다!
+    navigate(`/items/search?q=${encodeURIComponent(searchQuery)}`);
+  };
+
   // 1. 날짜 포맷 함수 (에러 해결!)
   const formatDate = (d: Date) => d.toISOString().slice(0, 10);
   
@@ -78,16 +89,11 @@ const HomePage: React.FC = () => {
         </section>
 
         <section className="search-section">
-          <div className="search-container">
-            <input
-              type="text"
-              className="search-input"
-              placeholder="쓰레기 종류를 검색해보세요 (예: 플라스틱, 종이, 가연성)"
-            />
-            <button className="search-button" type="button">
-              검색
-            </button>
-          </div>
+          <SearchBox 
+          value={searchQuery} 
+          onChange={setSearchQuery} 
+          onSearch={handleSearch} // 드디어 클릭 이벤트 연결!
+        />
         </section>
 
         <section className="bottom-section">
