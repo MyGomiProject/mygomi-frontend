@@ -1,109 +1,64 @@
 /* src/pages/IntegratedSearchPage.tsx */
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom'; // 1. URL 파라미터를 읽기 위한 훅
 import { useQuery } from '@tanstack/react-query';
 import { itemsApi } from '../api/items';
 import { useDebounce } from '../hooks/useDebounce';
-
-// ★ constants에서 가져온 기본값
-import { DEFAULT_WARD } from '../constants/constants'; 
-
-// 디자인 컴포넌트들
-import Header from '../components/Header';
-import ParallaxBackground from '../components/ParallaxBackground';
 import SearchBox from '../components/SearchBox';
-import ItemDetailView from '../components/ItemDetailView'; 
-import NotFoundSection from '../components/NotFoundSection';
-import Loading from '../components/Loading'; 
-
-// 스타일
-import './HomePage.css'; 
-import './IntegratedSearchPage.css'; 
+import ItemDetailView from '../components/ItemDetailView'; // 이미지 중앙 카드 역할
+import NotFoundSection from '../components/NotFoundSection'; // 이미지 하단 제보 섹션
+import { DEFAULT_WARD } from '../constants/constants'; // '大久保' 등이 정의된 상수 파일
 
 const IntegratedSearchPage: React.FC = () => {
-  const navigate = useNavigate();
+  // 2. URL의 ?q=...&ward=... 부분을 가져옵니다.
   const [searchParams, setSearchParams] = useSearchParams();
-  
-  // URL에서 파라미터 가져오기 (없으면 DEFAULT_WARD 사용)
   const urlQuery = searchParams.get('q') || '';
   const urlWard = searchParams.get('ward') || DEFAULT_WARD;
 
-  // 내부 검색창 상태
+  // 내부 검색창 상태 관리를 위해 URL의 q값을 초기값으로 설정합니다.
   const [query, setQuery] = useState(urlQuery);
-  const debouncedQuery = useDebounce(query, 300);
+  const debouncedQuery = useDebounce(query, 300); //
 
-  // URL이 바뀌면(헤더 검색 등) 내부 상태 동기화
+  // 3. URL 파라미터가 변경되면(예: 헤더에서 재검색) 내부 입력창 상태도 동기화합니다.
   useEffect(() => {
     setQuery(urlQuery);
   }, [urlQuery]);
 
-  // React Query로 데이터 가져오기
-  const { data: searchResults, isLoading, isFetched } = useQuery({
+  const { data: searchResults, isLoading, isFetched, refetch } = useQuery({
     queryKey: ['items-search', debouncedQuery, urlWard],
     queryFn: () => itemsApi.searchItems(debouncedQuery, urlWard),
     enabled: debouncedQuery.length > 0,
   });
 
-  // 검색 핸들러 (이 페이지 안에서 다시 검색할 때)
-  const handleSearch = () => {
+  // 버튼 클릭 시 수동으로 다시 조회(refetch)하거나 UI 피드백을 줄 수 있습니다.
+  const handleManualSearch = () => {
     if (query.trim()) {
-      navigate(`/integrated-search?q=${encodeURIComponent(query)}&ward=${encodeURIComponent(urlWard)}`);
+      setSearchParams({ q: query, ward: urlWard });
     }
   };
 
+  // 검색 결과가 1개 이상일 때, 가장 첫 번째 아이템을 보여줍니다.
   const topResult = searchResults && searchResults.length > 0 ? searchResults[0] : null;
 
   return (
-    <div className="home-page">
-      {/* 1. 배경과 헤더를 HomePage와 똑같이 배치 */}
-      <ParallaxBackground />
-      <Header />
+    <div className="search-container" style={{ maxWidth: '600px', margin: '0 auto', padding: '20px' }}>
+      <header style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>복잡한 분리수거, MYGOMI와 함께 쉽게</h1>
+        {/* 현재 어떤 지역을 기준으로 검색 중인지 보여주면 더 친절합니다. */}
+        <p style={{ color: '#666' }}>
+          현재 <strong>{urlWard}</strong> 지역 정보를 확인 중입니다.
+        </p>
+        <SearchBox value={query} onChange={setQuery} onSearch={handleManualSearch} />
+      </header>
 
-      <main className="main-content">
-        {/* 2. Hero Section */}
-        <section className="hero-section">
-          <div className="hero-content">
-            <h1 className="hero-title">무엇을 버리고 싶으신가요?</h1>
-            <p className="hero-subtitle">
-              현재 <span className="highlight">{urlWard}</span> 지역의 분리수거 정보를 찾고 있습니다.
-            </p>
-          </div>
-        </section>
+      <main className="results-area">
+        {isLoading && <div className="loading">분류 정보를 찾는 중...</div>}
 
-        {/* 3. 검색창 섹션 */}
-        <section className="search-section">
-          <SearchBox 
-            value={query} 
-            onChange={setQuery} 
-            onSearch={handleSearch} 
-          />
-        </section>
-
-        {/* 4. 결과 섹션 */}
-        <section className="bottom-section">
-          <div className="bottom-inner search-mode">
-            
-            <div className="search-results-container">
-              {isLoading ? (
-                <Loading message="분류 정보를 찾는 중..." />
-              ) : topResult ? (
-                // 결과가 있을 때 카드 뷰
-                <ItemDetailView item={topResult} />
-              ) : (
-                // 결과가 없을 때
-                debouncedQuery && isFetched && <NotFoundSection />
-              )}
-              
-              {/* 검색어가 없을 때 안내 문구 */}
-              {!debouncedQuery && (
-                <div className="search-info-text">
-                  <p>궁금한 쓰레기나 물품 이름을 입력해주세요.</p>
-                </div>
-              )}
-            </div>
-
-          </div>
-        </section>
+        {topResult ? (
+          <ItemDetailView item={topResult} />
+        ) : (
+          debouncedQuery && isFetched && <NotFoundSection />
+        )}
       </main>
     </div>
   );
