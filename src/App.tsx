@@ -9,6 +9,9 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import MyPage from './pages/MyPage';
 import TestPage from './pages/TestPage';
+import IntegratedSearchPage from './pages/IntegratedSearchPage';
+
+
 import { AuthProvider } from './contexts/AuthContext';
 import './App.css';
 
@@ -33,6 +36,9 @@ function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/sharing" element={<SharingPage />} />
               <Route path="/address-input" element={<AddressInputPage />} />
+
+              {/* 검색 페이지 경로 등록 */}
+                <Route path="/integrated-search" element={<IntegratedSearchPage />} />
               
               {/* 인증 페이지 추가 */}
               <Route path="/login" element={<LoginPage />} />
