@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-// 백엔드에서 CORS 설정 완료 - 프록시 없이 직접 호출 가능
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+// [수정 전] const API_BASE = '/api';
+// [수정 후] 빈 문자열로 변경 (이미 개별 API 파일에 /api를 적었으므로 중복 방지)
+const API_BASE = '';
 
 export const apiClient = axios.create({
   baseURL: API_BASE,

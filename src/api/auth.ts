@@ -27,10 +27,10 @@ export interface LoginResponse {
 
 export const authApi = {
   login: async (req: LoginRequest): Promise<LoginResponse> => {
-    console.log('API 호출:', '/api/auth/login', req);
+    console.log('API 호출:', '/auth/login', req);
     console.log('Base URL:', apiClient.defaults.baseURL);
     try {
-      const resp = await apiClient.post<ApiResponse<LoginResponse>>('/api/auth/login', req);
+      const resp = await apiClient.post<ApiResponse<LoginResponse>>('/auth/login', req);
       console.log('API 응답:', resp.data);
       return resp.data.data;
     } catch (error: any) {
@@ -45,10 +45,10 @@ export const authApi = {
   },
 
   signup: async (req: SignupRequest): Promise<string> => {
-    console.log('회원가입 API 호출:', '/api/auth/signup', req);
+    console.log('회원가입 API 호출:', '/auth/signup', req);
     console.log('Base URL:', apiClient.defaults.baseURL);
     try {
-      const resp = await apiClient.post<ApiResponse<string>>('/api/auth/signup', req);
+      const resp = await apiClient.post<ApiResponse<string>>('/auth/signup', req);
       console.log('회원가입 API 응답:', resp.data);
       return resp.data.data;
     } catch (error: any) {
