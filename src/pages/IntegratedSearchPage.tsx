@@ -53,8 +53,8 @@ const IntegratedSearchPage: React.FC = () => {
     isLoading: isItemLoading,
     isError: isItemError 
   } = useQuery({
-    queryKey: ['items-search', urlQuery, urlWard],
-    queryFn: () => itemsApi.searchItems(urlQuery, urlWard),
+    queryKey: ['items-search'],
+    queryFn: () => itemsApi.searchItems(urlQuery),
     enabled: !!urlQuery, 
     staleTime: 1000 * 60 * 5, // 5분 캐시
   });

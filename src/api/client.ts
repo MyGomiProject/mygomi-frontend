@@ -4,7 +4,7 @@ import axios from 'axios';
 // [수정 후] 빈 문자열로 변경 (이미 개별 API 파일에 /api를 적었으므로 중복 방지)
 const API_BASE = '';
 
-export const apiClient = axios.create({
+const apiClient = axios.create({
   baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json',

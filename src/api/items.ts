@@ -3,9 +3,9 @@ import { SearchItem, SearchResponse } from '../types/items'; // 분리된 타입
 
 // 3. 핵심: API 호출 함수 추가!
 export const itemsApi = {
-  searchItems: async (q: string, ward: string): Promise<SearchItem[]> => {
+  searchItems: async (q: string): Promise<SearchItem[]> => {
     const response = await apiClient.get<SearchResponse>('/api/items/search', {
-      params: { q, ward }, //
+      params: { keyword : q }, //
     });
     return response.data.data;
   },
