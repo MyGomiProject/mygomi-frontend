@@ -1,30 +1,40 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+// 1 - 파일 구조에 맞춰 import 경로 확인
 import Header from '../components/Header';
 import ParallaxBackground from '../components/ParallaxBackground';
 import Map from '../components/Map';
 import Loading from '../components/Loading';
 import ErrorDisplay from '../components/ErrorDisplay';
-import { useWeeklyCalendar } from '../hooks/useCalendar';
-import { useNavigate } from 'react-router-dom';
 import SearchBox from '../components/SearchBox';
+
+// 2 - 커스텀 훅 및 상수 import 
+import { useWeeklyCalendar } from '../hooks/useCalendar';
+import { useAuth } from '../contexts/AuthContext'; 
+import { DEFAULT_ADDRESS_ID } from '../constants/constants'; // 
 import './HomePage.css';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearch = () => {
     if (!searchQuery.trim()) return;
-    // 검색 페이지로 이동하면서 쿼리 파라미터를 들고 갑니다!
     navigate(`/items/search?q=${encodeURIComponent(searchQuery)}`);
   };
 
-  // 1. 날짜 포맷 함수 (에러 해결!)
-  const formatDate = (d: Date) => d.toISOString().slice(0, 10);
-  
-// 2. 현재 달력에 보여줄 '기준 날짜'를 상태로 관리
-  const [currentDate, setCurrentDate] = useState(new Date());
+  // 1. 날짜 포맷 함수
+const formatDate = (d: Date) => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
+// 2. 현재 달력 기준 날짜
+  const [currentDate, setCurrentDate] = useState(new Date());
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
 
@@ -32,21 +42,19 @@ const HomePage: React.FC = () => {
   const handlePrevMonth = () => {
     setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
   };
-
   // 다음 달 이동
   const handleNextMonth = () => {
     setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
   };
-
   // 오늘로 이동
   const handleGoToday = () => {
     setCurrentDate(new Date());
   };
 
-  // 2. 월간 달력 날짜 계산 (42일 그리드)
+  // 3. 월간 달력 날짜 계산 (42일 그리드)
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
   const startDay = firstDayOfMonth.getDay(); // 0:일, 1:월...
-  const diff = (startDay === 0 ? 6 : startDay - 1); // 월요일 시작 기준
+  const diff = startDay;
   
   const startDate = new Date(firstDayOfMonth);
   startDate.setDate(firstDayOfMonth.getDate() - diff);
@@ -61,13 +69,15 @@ const HomePage: React.FC = () => {
     };
   });
 
-  // 3. API 호출 (중복 선언 제거!)
+  // 4. API 호출 
+  // 로그인한 유저라면 유저의 addressId를, 아니면 constants.ts의 1619를 사용
+  const addressId = user?.id ? (user as any).addressId || DEFAULT_ADDRESS_ID : DEFAULT_ADDRESS_ID;
+ // 캘린더 데이터 조회 기간
   const from = calendarDaysRange[0].dateStr;
   const to = calendarDaysRange[41].dateStr;
-  const addressId = 1;
   const { data: events, isLoading, error } = useWeeklyCalendar({ addressId, from, to });
 
-  // 4. 쓰레기 라벨 설정
+  // 5. 쓰레기 라벨 설정
   const wasteTypeLabels: Record<string, { label: string; emoji: string; class: string }> = {
     BURNABLE: { label: '가연성', emoji: '🔥', class: 'burnable' },
     NON_BURNABLE: { label: '불연성', emoji: '🗑️', class: 'non-burnable' },

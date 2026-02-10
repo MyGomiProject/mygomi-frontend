@@ -1,5 +1,5 @@
 import React from 'react';
-import { SearchItem } from '../api/items';
+import { SearchItem } from '../types/items';
 
 interface ItemDetailViewProps {
   item: SearchItem;
