@@ -5,9 +5,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { addressApi } from '../api/address';
 import { userApi } from '../api/user';
 import Header from '../components/Header';
-import ParallaxBackground from '../components/ParallaxBackground';
 import Loading from '../components/Loading';
 import ErrorDisplay from '../components/ErrorDisplay';
+import ParallaxBackground from '../components/ParallaxBackground';
 import './MyPage.css';
 
 interface SharingPost {
@@ -26,6 +26,13 @@ const MyPage: React.FC = () => {
   const { user, token } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 6;
+
+  // 로그인하지 않은 경우 로그인 페이지로 리다이렉트
+  useEffect(() => {
+    if (!token) {
+      navigate('/login', { replace: true });
+    }
+  }, [token, navigate]);
 
   // 사용자 정보 조회
   const { data: userInfo, isLoading: userLoading, error: userError } = useQuery({
@@ -49,34 +56,48 @@ const MyPage: React.FC = () => {
       description: '사용 잘하는 나무 의자입니다.',
       location: '도쿄 오타구',
       createdAt: '2026-02-15',
-      imageUrl: 'https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=300&h=300&fit=crop',
+      imageUrl: 'https://images.unsplash.com/photo-1592078615290-033ee584e279?w=300&h=200&fit=crop',
       status: 'OPEN',
       category: 'FURNITURE',
     },
     {
       id: '2',
       title: '전자레인지 무료로 드립니다',
-      description: '상태 양호한 전자레인지입니다.',
+      description: '작동 잘 되는 전자레인지입니다.',
       location: '도쿄 오타구',
       createdAt: '2026-02-10',
-      imageUrl: 'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?w=300&h=300&fit=crop',
-      status: 'OPEN',
+      imageUrl: 'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?w=300&h=200&fit=crop',
+      status: 'RESERVED',
       category: 'ELECTRONICS',
+    },
+    {
+      id: '3',
+      title: '자전거 나눔합니다',
+      description: '잘 타고 다녔던 자전거입니다.',
+      location: '도쿄 신주쿠구',
+      createdAt: '2026-02-08',
+      imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&h=200&fit=crop',
+      status: 'COMPLETED',
+      category: 'ETC',
+    },
+    {
+      id: '4',
+      title: '책장 나눔합니다',
+      description: '작은 책장 나눔합니다. 상태 양호합니다.',
+      location: '도쿄 시부야구',
+      createdAt: '2026-02-01',
+      imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=300&h=200&fit=crop',
+      status: 'OPEN',
+      category: 'FURNITURE',
     },
   ];
 
-  // 페이지네이션 계산
   const totalPages = Math.ceil(mockPosts.length / postsPerPage);
-  const startIndex = (currentPage - 1) * postsPerPage;
-  const endIndex = startIndex + postsPerPage;
-  const currentPosts = mockPosts.slice(startIndex, endIndex);
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  const currentPosts = mockPosts.slice(indexOfFirstPost, indexOfLastPost);
 
-  // 로그인하지 않은 경우 리다이렉트
-  useEffect(() => {
-    if (!token) {
-      navigate('/login', { state: { message: '마이페이지를 보려면 로그인이 필요합니다.' } });
-    }
-  }, [token, navigate]);
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   const handleEditInfo = () => {
     // 정보 수정 페이지로 이동 (추후 구현)
@@ -106,47 +127,30 @@ const MyPage: React.FC = () => {
     console.log('게시글 클릭:', postId);
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
-  };
-
-  if (!token) {
-    return null; // 리다이렉트 중
-  }
-
   if (userLoading || addressesLoading) {
-    return (
-      <div className="my-page">
-        <Header />
-        <Loading message="정보를 불러오는 중..." />
-      </div>
-    );
+    return <Loading fullScreen message="마이페이지 정보를 불러오는 중..." />;
   }
 
   if (userError || addressesError) {
     return (
-      <div className="my-page">
-        <Header />
-        <ErrorDisplay
-          title="정보 로드 실패"
-          message={userError?.message || addressesError?.message || '정보를 불러오는데 실패했습니다.'}
-          onRetry={() => window.location.reload()}
-        />
-      </div>
+      <ErrorDisplay
+        fullScreen
+        title="정보 로드 실패"
+        message={userError?.message || addressesError?.message || '마이페이지 정보를 불러오는데 실패했습니다.'}
+        onRetry={() => window.location.reload()}
+      />
     );
   }
 
-  const displayName = userInfo?.nickname || user?.nickname || '사용자';
-  const displayEmail = userInfo?.email || user?.email || '';
-  const joinDate = userInfo?.createdAt ? formatDate(userInfo.createdAt) : '2026.01.28';
+  const displayName = userInfo?.nickname || userInfo?.email?.split('@')[0] || '사용자';
+  const displayEmail = userInfo?.email || '이메일 없음';
+  const joinDate = userInfo?.createdAt ? new Date(userInfo.createdAt).toLocaleDateString('ko-KR') : 'N/A';
 
   return (
     <div className="my-page">
       <ParallaxBackground />
       <Header />
       <main className="my-page-main">
-        {/* 헤더 섹션 */}
         <section className="my-page-header">
           <h1 className="my-page-title">마이페이지</h1>
           <p className="my-page-greeting">환영합니다, {displayName}님!</p>
@@ -203,38 +207,32 @@ const MyPage: React.FC = () => {
             </div>
           </div>
 
-          {/* 내가 올린 나눔 게시물 */}
-          <section className="my-posts-section">
+          {/* 내가 올린 나눔 게시물 섹션 */}
+          <div className="my-posts-section">
             <h2 className="my-posts-title">내가 올린 나눔 게시물</h2>
-            <div className="posts-grid">
-              {currentPosts.length > 0 ? (
-                currentPosts.map((post) => (
-                  <div
-                    key={post.id}
-                    className="post-card"
-                    onClick={() => handlePostClick(post.id)}
-                  >
-                    {post.imageUrl && (
-                      <div className="post-image">
-                        <img src={post.imageUrl} alt={post.title} />
-                      </div>
-                    )}
+            {currentPosts.length > 0 ? (
+              <div className="posts-grid">
+                {currentPosts.map((post) => (
+                  <div key={post.id} className="post-card" onClick={() => handlePostClick(post.id)}>
+                    <div className="post-image">
+                      <img src={post.imageUrl} alt={post.title} />
+                    </div>
                     <div className="post-content">
                       <div className="post-header">
                         <h3 className="post-title">{post.title}</h3>
                         <span className={`post-status ${post.status.toLowerCase()}`}>
-                          {post.status === 'OPEN' ? '나눔 진행중' : post.status === 'RESERVED' ? '예약됨' : '완료'}
+                          {post.status === 'OPEN' ? '나눔 중' : post.status === 'RESERVED' ? '예약 중' : '완료'}
                         </span>
                       </div>
-                      <p className="post-date">{formatDate(post.createdAt)}</p>
+                      <p className="post-date">{post.createdAt}</p>
                       <p className="post-location">📍 {post.location}</p>
                     </div>
                   </div>
-                ))
-              ) : (
-                <p className="no-posts">올린 게시물이 없습니다.</p>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="no-posts">아직 올린 나눔 게시물이 없습니다.</p>
+            )}
 
             {/* 페이지네이션 */}
             {totalPages > 1 && (
@@ -246,9 +244,7 @@ const MyPage: React.FC = () => {
                 >
                   &lt; 이전
                 </button>
-                <span className="pagination-page">
-                  {currentPage} / {totalPages}
-                </span>
+                <span className="pagination-page">{currentPage} / {totalPages}</span>
                 <button
                   className="pagination-button"
                   onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
@@ -258,7 +254,7 @@ const MyPage: React.FC = () => {
                 </button>
               </div>
             )}
-          </section>
+          </div>
         </section>
       </main>
     </div>

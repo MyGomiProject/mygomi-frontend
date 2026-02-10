@@ -1,14 +1,69 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Header from '../components/Header';
 import ParallaxBackground from '../components/ParallaxBackground';
 import Map from '../components/Map';
 import SharingPostList from '../components/SharingPostList';
+import SharingPostModal from '../components/SharingPostModal';
 import './SharingPage.css';
 
+interface SharingPost {
+  id: string;
+  title: string;
+  description: string;
+  author: string;
+  location: string;
+  createdAt: string;
+  imageUrl?: string;
+  imageUrls?: string[];
+  category?: string;
+  status?: 'OPEN' | 'RESERVED' | 'COMPLETED';
+}
+
 const SharingPage: React.FC = () => {
+  const [selectedPost, setSelectedPost] = useState<SharingPost | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const handleWriteClick = () => {
     // 글쓰기 페이지로 이동 (추후 구현)
     console.log('Write button clicked');
+  };
+
+  const handlePostClick = (post: SharingPost) => {
+    setSelectedPost(post);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedPost(null);
+  };
+
+  const handleMarkerClick = (marker: {
+    id: string;
+    title: string;
+    description?: string;
+    author?: string;
+    location?: string;
+    createdAt?: string;
+    imageUrl?: string;
+    imageUrls?: string[];
+    category?: string;
+    status?: 'OPEN' | 'RESERVED' | 'COMPLETED';
+  }) => {
+    const post: SharingPost = {
+      id: marker.id,
+      title: marker.title,
+      description: marker.description || '',
+      author: marker.author || '',
+      location: marker.location || '',
+      createdAt: marker.createdAt || new Date().toISOString(),
+      imageUrl: marker.imageUrl,
+      imageUrls: marker.imageUrls || (marker.imageUrl ? [marker.imageUrl] : undefined),
+      category: marker.category,
+      status: marker.status || 'OPEN',
+    };
+    setSelectedPost(post);
+    setIsModalOpen(true);
   };
 
   return (
@@ -23,7 +78,8 @@ const SharingPage: React.FC = () => {
           </div>
           <div className="sharing-content-wrapper">
             <div className="sharing-map-section">
-              <Map />
+              <h2 className="map-section-title">동네 나눔 지도</h2>
+              <Map onMarkerClick={handleMarkerClick} />
             </div>
             <div className="sharing-posts-section">
               <div className="posts-header">
@@ -32,11 +88,16 @@ const SharingPage: React.FC = () => {
                   ✏️ 글쓰기
                 </button>
               </div>
-              <SharingPostList />
+              <SharingPostList onPostClick={handlePostClick} />
             </div>
           </div>
         </div>
       </main>
+      <SharingPostModal 
+        post={selectedPost} 
+        isOpen={isModalOpen} 
+        onClose={handleCloseModal}
+      />
     </div>
   );
 };

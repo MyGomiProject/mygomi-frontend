@@ -4,55 +4,96 @@
   gap: 1rem;
   flex: 1;
   overflow-y: auto;
-  padding-right: 0.5rem;
+  overflow-x: hidden; /* 좌우 스크롤 제거 */
+  padding: 0.5rem 0.5rem 0.5rem 0;
   max-height: calc(100vh - 300px);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .sharing-post-card {
   background: #ffffff;
   border-radius: 12px;
-  padding: 1.2rem;
+  padding: 0.6rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   cursor: pointer;
   transition: all 0.2s;
   border: 1px solid #e0e0e0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: visible; /* 호버 시 그림자가 잘리지 않도록 */
+  position: relative;
+  z-index: 1;
+  margin: 0.25rem 0; /* 상하 여백 추가 */
 }
 
 .sharing-post-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+  z-index: 10;
 }
 
 .post-content-wrapper {
   display: flex;
-  gap: 1rem;
+  gap: 0.8rem;
   align-items: flex-start;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .post-image {
   flex-shrink: 0;
-  width: 100px;
-  height: 100px;
+  width: 90px;
+  height: 90px;
+  min-width: 90px;
+  max-width: 90px;
+  min-height: 90px;
+  max-height: 90px;
+  aspect-ratio: 1 / 1;
   border-radius: 8px;
   overflow: hidden;
   background: #f5f5f5;
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-top: 0.2rem; /* 이미지를 약간 아래로 내림 */
 }
 
 .post-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
+  display: block;
 }
 
 .post-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.3rem;
   min-width: 0;
+  flex-basis: 0;
+  overflow: hidden;
+  max-width: calc(100% - 90px - 0.8rem); /* 이미지와 gap을 제외한 너비 */
+  box-sizing: border-box;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0;
+  min-width: 0;
+  width: 100%;
 }
 
 .post-title {
@@ -60,27 +101,82 @@
   font-size: 1.1rem;
   font-weight: 700;
   color: #333;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.4;
+  flex: 1;
+  min-width: 0;
+}
+
+.post-status {
+  padding: 0.2rem 0.6rem;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.post-status-open {
+  background-color: rgba(102, 187, 106, 0.1);
+  color: #66bb6a;
+}
+
+.post-status-reserved {
+  background-color: rgba(255, 152, 0, 0.1);
+  color: #ff9800;
+}
+
+.post-status-completed {
+  background-color: rgba(153, 153, 153, 0.1);
+  color: #999;
 }
 
 .post-description {
-  margin: 0;
+  margin: 0 0 0.3rem 0;
   font-size: 0.9rem;
   color: #666;
-  line-height: 1.5;
+  line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.post-info {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+  font-size: 0.8rem;
+  color: #666;
+  flex-wrap: wrap;
+}
+
+.post-category {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 500;
+  color: #555;
 }
 
 .post-meta {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.8rem;
-  margin-top: 0.5rem;
+  margin-top: 0.3rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid #f0f0f0;
   font-size: 0.85rem;
   color: #999;
   flex-wrap: wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .post-author {

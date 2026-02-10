@@ -31,16 +31,25 @@ const createCustomIcon = () => {
   });
 };
 
+interface MapMarker {
+  id: string;
+  position: [number, number];
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  imageUrls?: string[];
+  category?: string;
+  status?: 'OPEN' | 'RESERVED' | 'COMPLETED';
+  author?: string;
+  location?: string;
+  createdAt?: string;
+}
+
 interface MapProps {
   center?: [number, number];
   zoom?: number;
-  markers?: Array<{
-    id: string;
-    position: [number, number];
-    title: string;
-    description?: string;
-    imageUrl?: string;
-  }>;
+  markers?: MapMarker[];
+  onMarkerClick?: (marker: MapMarker) => void;
 }
 
 // 지도가 완전히 렌더링되도록 하는 컴포넌트
@@ -87,30 +96,58 @@ const MapResizer = () => {
 const Map: React.FC<MapProps> = ({ 
   center = [35.6762, 139.6503], // 도쿄 기본 위치
   zoom = 14,
-  markers = []
+  markers = [],
+  onMarkerClick
 }) => {
   // 기본 마커 데이터 (예시)
-  const defaultMarkers = markers.length > 0 ? markers : [
+  const defaultMarkers: MapMarker[] = markers.length > 0 ? markers : [
     {
       id: '1',
       position: [35.6762, 139.6503] as [number, number],
-      title: '나눔 물품 1',
-      description: '전자레인지 나눔합니다',
+      title: '전자레인지 나눔합니다',
+      description: '사용 잘하는 전자레인지입니다. 깨끗하게 사용했어요.',
       imageUrl: 'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?w=200&h=200&fit=crop',
+      imageUrls: [
+        'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?w=600&h=600&fit=crop',
+        'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?w=600&h=600&fit=crop',
+      ],
+      category: 'ELECTRONICS',
+      status: 'OPEN',
+      author: '지윤',
+      location: '신주쿠구',
+      createdAt: '2024-01-29',
     },
     {
       id: '2',
       position: [35.6800, 139.6500] as [number, number],
-      title: '나눔 물품 2',
-      description: '책장 나눔합니다',
+      title: '책장 나눔합니다',
+      description: '작은 책장 나눔합니다. 상태 양호합니다.',
       imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=200&h=200&fit=crop',
+      imageUrls: [
+        'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&h=600&fit=crop',
+        'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&h=600&fit=crop',
+      ],
+      category: 'FURNITURE',
+      status: 'RESERVED',
+      author: '신규구',
+      location: '시부야구',
+      createdAt: '2024-01-28',
     },
     {
       id: '3',
       position: [35.6720, 139.6520] as [number, number],
-      title: '나눔 물품 3',
-      description: '자전거 나눔합니다',
+      title: '자전거 나눔합니다',
+      description: '자전거 나눔합니다. 잘 타고 다녔어요.',
       imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=200&fit=crop',
+      imageUrls: [
+        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=600&fit=crop',
+        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=600&fit=crop',
+      ],
+      category: 'ETC',
+      status: 'COMPLETED',
+      author: '지험',
+      location: '미나토구',
+      createdAt: '2024-01-27',
     },
   ];
 
@@ -137,7 +174,17 @@ const Map: React.FC<MapProps> = ({
                   </div>
                 )}
                 <h3 className="map-popup-title">{marker.title}</h3>
-                
+                {onMarkerClick && (
+                  <button 
+                    className="map-popup-detail-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onMarkerClick(marker);
+                    }}
+                  >
+                    자세히 보기
+                  </button>
+                )}
               </div>
             </Popup>
           </Marker>
