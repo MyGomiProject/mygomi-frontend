@@ -14,6 +14,7 @@ export interface UserAddress {
   lng?: number;
   createdAt?: string;
   updatedAt?: string;
+  fullAddress?: string; // API 응답에 fullAddress가 있으면 사용
 }
 
 export interface CreateAddressRequest {

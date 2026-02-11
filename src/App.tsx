@@ -10,6 +10,7 @@ import SignupPage from './pages/SignupPage';
 import MyPage from './pages/MyPage';
 import TestPage from './pages/TestPage';
 import IntegratedSearchPage from './pages/IntegratedSearchPage';
+import SharePostCreatePage from './pages/SharePostCreatePage';
 
 
 import { AuthProvider } from './contexts/AuthContext';
@@ -35,6 +36,7 @@ function App() {
                 {/* 팀원의 기본 페이지 구조를 따릅니다 */}
               <Route path="/" element={<HomePage />} />
               <Route path="/sharing" element={<SharingPage />} />
+              <Route path="/sharing/create" element={<SharePostCreatePage />} />
               <Route path="/address-input" element={<AddressInputPage />} />
 
               {/* 검색 페이지 경로 등록 */}

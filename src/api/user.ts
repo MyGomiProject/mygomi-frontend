@@ -56,5 +56,20 @@ export const userApi = {
     const resp = await apiClient.put<ApiResponse<User>>('/api/users/me', data);
     return resp.data.data;
   },
+
+  // 닉네임 수정
+  updateNickname: async (nickname: string): Promise<User> => {
+    const resp = await apiClient.patch<User>('/api/users/me/nickname', { nickname });
+    return resp.data;
+  },
+
+  // 비밀번호 변경
+  updatePassword: async (currentPassword: string, newPassword: string): Promise<string> => {
+    const resp = await apiClient.patch<string>('/api/users/me/password', {
+      currentPassword,
+      newPassword,
+    });
+    return resp.data;
+  },
 };
 

@@ -205,12 +205,12 @@
 }
 
 .sharing-post-list::-webkit-scrollbar-thumb {
-  background: #888;
+  background: #66bb6a;
   border-radius: 10px;
 }
 
 .sharing-post-list::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #4caf50;
 }
 
 @media (max-width: 768px) {
