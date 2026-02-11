@@ -40,11 +40,11 @@ const formatDate = (d: Date) => {
 
   // 이전 달 이동
   const handlePrevMonth = () => {
-    setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
+    setCurrentDate(prevDate => new Date(prevDate.getFullYear(), prevDate.getMonth() - 1, 1));
   };
   // 다음 달 이동
   const handleNextMonth = () => {
-    setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
+    setCurrentDate(prevDate => new Date(prevDate.getFullYear(), prevDate.getMonth() + 1, 1));
   };
   // 오늘로 이동
   const handleGoToday = () => {
@@ -73,9 +73,11 @@ const formatDate = (d: Date) => {
   // 로그인한 유저라면 유저의 addressId를, 아니면 constants.ts의 1619를 사용
   const addressId = user?.id ? (user as any).addressId || DEFAULT_ADDRESS_ID : DEFAULT_ADDRESS_ID;
  // 캘린더 데이터 조회 기간
-  const from = calendarDaysRange[0].dateStr;
-  const to = calendarDaysRange[41].dateStr;
-  const { data: events, isLoading, error } = useWeeklyCalendar({ addressId, from, to });
+const { data: events, isLoading, error } = useWeeklyCalendar({ 
+  addressId, 
+  year: currentYear, 
+  month: currentMonth + 1  // getMonth()는 0부터 시작하므로 +1 해줍니다.
+});
 
   // 5. 쓰레기 라벨 설정
   const wasteTypeLabels: Record<string, { label: string; emoji: string; class: string }> = {

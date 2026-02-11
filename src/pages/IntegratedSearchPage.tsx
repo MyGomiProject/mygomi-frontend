@@ -74,8 +74,8 @@ const IntegratedSearchPage: React.FC = () => {
     queryKey: ['calendar', CURRENT_ADDRESS_ID],
     queryFn: () => fetchCalendar(
       CURRENT_ADDRESS_ID, 
-      formatDate(today), 
-      formatDate(nextMonth)
+      today.getFullYear(),
+      today.getMonth() + 1
     ),
     enabled: !!urlQuery, // 검색어가 있을 때만 실행
     staleTime: 1000 * 60 * 60, // 1시간 캐시
