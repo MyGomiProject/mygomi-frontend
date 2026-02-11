@@ -76,7 +76,8 @@ const formatDate = (d: Date) => {
 const { data: events, isLoading, error } = useWeeklyCalendar({ 
   addressId, 
   year: currentYear, 
-  month: currentMonth + 1  // getMonth()는 0부터 시작하므로 +1 해줍니다.
+  month: currentMonth + 1,  // getMonth()는 0부터 시작하므로 +1 해줍니다.
+  isLoggedIn: !!user // 유저 존재 여부
 });
 
   // 5. 쓰레기 라벨 설정
@@ -104,7 +105,7 @@ const { data: events, isLoading, error } = useWeeklyCalendar({
           <SearchBox 
           value={searchQuery} 
           onChange={setSearchQuery} 
-          onSearch={handleSearch} // 드디어 클릭 이벤트 연결!
+          onSearch={handleSearch}
         />
         </section>
 
@@ -120,6 +121,12 @@ const { data: events, isLoading, error } = useWeeklyCalendar({
                     <button onClick={handleNextMonth}>다음달 &gt;</button>
                   </div>
                 </div>
+                                  
+                  {!user && (
+                      <span style={{ fontSize: '12px', color: '#727272', marginLeft: '8px' }}>
+                        ※ 로그인 시 상세 배출 정보가 표시됩니다.
+                      </span>
+                    )}
               </div>
               <div className="panel-placeholder calendar-placeholder">
                 {isLoading ? (
@@ -150,6 +157,9 @@ const { data: events, isLoading, error } = useWeeklyCalendar({
                           className={`calendar-day ${!d.isCurrentMonth ? 'not-current' : ''} ${isToday ? 'is-today' : ''}`}
                         >
                           <span className="day-number">{d.date.getDate()}</span>
+
+                          {/* 1. 로그인한 경우 리스트 표시 */}
+                          {user && (
                           <div className="waste-list">
                             {dayEvents.map((ev, i) => {
                               const type = ev.extendedProps?.wasteType || '';
@@ -162,11 +172,12 @@ const { data: events, isLoading, error } = useWeeklyCalendar({
                               ) : null;
                             })}
                           </div>
-                        </div>
+                          )}
+                  </div>
                       );
                     })}
-                  </div>
-                )}
+                </div>
+              )}
               </div>
             </div>
 
