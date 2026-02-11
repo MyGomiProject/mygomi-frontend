@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import ParallaxBackground from '../components/ParallaxBackground';
 import Map from '../components/Map';
@@ -20,12 +21,12 @@ interface SharingPost {
 }
 
 const SharingPage: React.FC = () => {
+  const navigate = useNavigate();
   const [selectedPost, setSelectedPost] = useState<SharingPost | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleWriteClick = () => {
-    // 글쓰기 페이지로 이동 (추후 구현)
-    console.log('Write button clicked');
+    navigate('/sharing/create');
   };
 
   const handlePostClick = (post: SharingPost) => {
@@ -74,7 +75,7 @@ const SharingPage: React.FC = () => {
         <div className="sharing-container">
           <div className="sharing-header">
             <h1 className="sharing-title">근처 나눔 지도</h1>
-            <p className="sharing-subtitle">우리 동네 Free Sharing Market</p>
+            <p className="sharing-subtitle">우리 동네의 나눔 물품들을 확인해보세요</p>
           </div>
           <div className="sharing-content-wrapper">
             <div className="sharing-map-section">
