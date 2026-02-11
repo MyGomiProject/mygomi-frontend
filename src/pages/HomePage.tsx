@@ -121,7 +121,6 @@ const { data: events, isLoading, error } = useWeeklyCalendar({
                     <button onClick={handleNextMonth}>다음달 &gt;</button>
                   </div>
                 </div>
-                                  
                   {!user && (
                       <span style={{ fontSize: '12px', color: '#727272', marginLeft: '8px' }}>
                         ※ 로그인 시 상세 배출 정보가 표시됩니다.
@@ -129,7 +128,7 @@ const { data: events, isLoading, error } = useWeeklyCalendar({
                     )}
               </div>
               <div className="panel-placeholder calendar-placeholder">
-                {isLoading ? (
+                {isLoading ? (d
                   <Loading message="캘린더 데이터를 불러오는 중..." />
                 ) : error ? (
                   <ErrorDisplay
