@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -11,16 +10,9 @@ import ErrorDisplay from '../components/ErrorDisplay';
 import SearchBox from '../components/SearchBox';
 
 // 2 - 커스텀 훅 및 상수 import 
-=======
-import React, { useState } from 'react'; // 
-import { Link } from 'react-router-dom';
-import Header from '../components/Header';
-import ParallaxBackground from '../components/ParallaxBackground';
-import Map from '../components/Map';
->>>>>>> Stashed changes
 import { useWeeklyCalendar } from '../hooks/useCalendar';
 import { useAuth } from '../contexts/AuthContext'; 
-import { DEFAULT_ADDRESS_ID } from '../constants/constants'; // 
+import { DEFAULT_ADDRESS_ID } from '../constants/constants';
 import './HomePage.css';
 
 const HomePage: React.FC = () => {
