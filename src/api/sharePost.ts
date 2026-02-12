@@ -33,34 +33,71 @@ export const sharePostApi = {
   createPost: async (data: SharePostRequest, images: File[]): Promise<SharePostResponse> => {
     const formData = new FormData();
     
-    formData.append('title', data.title);
-    formData.append('content', data.content);
-    formData.append('category', data.category);
-    formData.append('lat', data.lat.toString());
-    formData.append('lng', data.lng.toString());
+    // 필수 필드 검증
+    if (!data.title || !data.title.trim()) {
+      throw new Error('제목은 필수입니다.');
+    }
+    if (!data.content || !data.content.trim()) {
+      throw new Error('내용은 필수입니다.');
+    }
+    if (!data.category) {
+      throw new Error('카테고리는 필수입니다.');
+    }
+    if (images.length === 0) {
+      throw new Error('최소 1장의 이미지가 필요합니다.');
+    }
     
-    if (data.prefecture) {
-      formData.append('prefecture', data.prefecture);
-    }
-    if (data.ward) {
-      formData.append('ward', data.ward);
-    }
-    if (data.town) {
-      formData.append('town', data.town);
-    }
+    // 백엔드가 'request' part를 요구하므로 JSON 객체로 전송
+    // 백엔드는 'description' 필드를 기대하므로 content를 description으로 매핑
+    const requestData = {
+      title: data.title.trim(),
+      description: data.content.trim(), // 백엔드는 description 필드를 사용
+      category: data.category,
+      lat: data.lat,
+      lng: data.lng,
+      ...(data.prefecture && { prefecture: data.prefecture }),
+      ...(data.ward && { ward: data.ward }),
+      ...(data.town && { town: data.town }),
+    };
+    
+    // 'request' part에 JSON 데이터 추가
+    formData.append('request', new Blob([JSON.stringify(requestData)], { type: 'application/json' }));
     
     // 이미지 파일 추가 (최대 5장)
-    images.forEach((image, index) => {
+    images.forEach((image) => {
       formData.append('images', image);
     });
     
-    const response = await apiClient.post<SharePostResponse>('/api/share-posts', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+    // 디버깅: FormData 내용 확인
+    console.log('FormData 필드:');
+    console.log('request:', JSON.stringify(requestData));
+    const entries = Array.from(formData.entries());
+    entries.forEach(([key, value]) => {
+      if (value instanceof File) {
+        console.log(`${key}:`, value.name, `(${value.size} bytes)`);
+      } else if (value instanceof Blob) {
+        console.log(`${key}:`, 'Blob', `(${value.size} bytes)`);
+      } else {
+        console.log(`${key}:`, value);
+      }
     });
     
-    return response.data;
+    try {
+      const response = await apiClient.post<SharePostResponse>('/api/share-posts', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      return response.data;
+    } catch (error: any) {
+      console.error('API 요청 실패 상세:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+      throw error;
+    }
   },
   
   getPost: async (id: string): Promise<SharePostResponse> => {

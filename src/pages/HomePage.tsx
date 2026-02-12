@@ -12,7 +12,7 @@ import SearchBox from '../components/SearchBox';
 // 2 - 커스텀 훅 및 상수 import 
 import { useWeeklyCalendar } from '../hooks/useCalendar';
 import { useAuth } from '../contexts/AuthContext'; 
-import { DEFAULT_ADDRESS_ID } from '../constants/constants'; // 
+import { DEFAULT_ADDRESS_ID } from '../constants/constants';
 import './HomePage.css';
 
 const HomePage: React.FC = () => {
@@ -40,11 +40,11 @@ const formatDate = (d: Date) => {
 
   // 이전 달 이동
   const handlePrevMonth = () => {
-    setCurrentDate(prevDate => new Date(prevDate.getFullYear(), prevDate.getMonth() - 1, 1));
+    setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
   };
   // 다음 달 이동
   const handleNextMonth = () => {
-    setCurrentDate(prevDate => new Date(prevDate.getFullYear(), prevDate.getMonth() + 1, 1));
+    setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
   };
   // 오늘로 이동
   const handleGoToday = () => {
@@ -73,12 +73,9 @@ const formatDate = (d: Date) => {
   // 로그인한 유저라면 유저의 addressId를, 아니면 constants.ts의 1619를 사용
   const addressId = user?.id ? (user as any).addressId || DEFAULT_ADDRESS_ID : DEFAULT_ADDRESS_ID;
  // 캘린더 데이터 조회 기간
-const { data: events, isLoading, error } = useWeeklyCalendar({ 
-  addressId, 
-  year: currentYear, 
-  month: currentMonth + 1,  // getMonth()는 0부터 시작하므로 +1 해줍니다.
-  isLoggedIn: !!user // 유저 존재 여부
-});
+  const from = calendarDaysRange[0].dateStr;
+  const to = calendarDaysRange[41].dateStr;
+  const { data: events, isLoading, error } = useWeeklyCalendar({ addressId, from, to });
 
   // 5. 쓰레기 라벨 설정
   const wasteTypeLabels: Record<string, { label: string; emoji: string; class: string }> = {
@@ -105,7 +102,7 @@ const { data: events, isLoading, error } = useWeeklyCalendar({
           <SearchBox 
           value={searchQuery} 
           onChange={setSearchQuery} 
-          onSearch={handleSearch}
+          onSearch={handleSearch} // 드디어 클릭 이벤트 연결!
         />
         </section>
 
@@ -121,33 +118,21 @@ const { data: events, isLoading, error } = useWeeklyCalendar({
                     <button onClick={handleNextMonth}>다음달 &gt;</button>
                   </div>
                 </div>
-                                  
-                  {!user && (
-                      <span style={{ fontSize: '12px', color: '#727272', marginLeft: '8px' }}>
-                        ※ 로그인 시 상세 배출 정보가 표시됩니다.
-                      </span>
-                    )}
               </div>
               <div className="panel-placeholder calendar-placeholder">
-                {isLoading ? (
-                  <Loading message="캘린더 데이터를 불러오는 중..." />
-                ) : error ? (
-                  <ErrorDisplay
-                    title="캘린더 로드 실패"
-                    message={error.message || '캘린더 데이터를 불러오는데 실패했습니다.'}
-                    onRetry={() => window.location.reload()}
-                  />
-                ) : (
-                  <div className="calendar-grid">
-                    {/* 요일 헤더 */}
-                    {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
-                      <div key={day} className="calendar-weekday-header">
-                        {day}
-                      </div>
-                    ))}
+                <div className="calendar-grid">
+                  {/* 요일 헤더: 화살표 뒤에 소괄호 '('를 쓰는 것이 포인트! */}
+                  {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
+                    <div key={day} className="calendar-weekday-header">
+                      {day}
+                    </div>
+                  ))}
 
-                    {/* 날짜 데이터 렌더링 부분 */}
-                    {calendarDaysRange.map((d, index) => {
+                  {/* 날짜 데이터 렌더링 부분 */}
+                  {isLoading ? (
+                    <div className="calendar-loading">로딩 중...</div>
+                  ) : (
+                    calendarDaysRange.map((d, index) => {
                       const dayEvents = Array.isArray(events) ? events.filter(e => e.start === d.dateStr) : [];
                       const isToday = d.dateStr === formatDate(new Date());
 
@@ -157,9 +142,6 @@ const { data: events, isLoading, error } = useWeeklyCalendar({
                           className={`calendar-day ${!d.isCurrentMonth ? 'not-current' : ''} ${isToday ? 'is-today' : ''}`}
                         >
                           <span className="day-number">{d.date.getDate()}</span>
-
-                          {/* 1. 로그인한 경우 리스트 표시 */}
-                          {user && (
                           <div className="waste-list">
                             {dayEvents.map((ev, i) => {
                               const type = ev.extendedProps?.wasteType || '';
@@ -172,12 +154,11 @@ const { data: events, isLoading, error } = useWeeklyCalendar({
                               ) : null;
                             })}
                           </div>
-                          )}
-                  </div>
+                        </div>
                       );
-                    })}
+                    })
+                  )}
                 </div>
-              )}
               </div>
             </div>
 

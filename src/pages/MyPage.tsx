@@ -308,7 +308,7 @@ const MyPage: React.FC = () => {
                         {address.isPrimary ? '📌' : ''}
                       </div>
                       <span className="address-text">
-                        {address.fullAddress || 
+                        {address.fullAddress ||
                           (address.prefecture && address.ward
                             ? [
                                 address.prefecture,
