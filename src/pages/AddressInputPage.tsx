@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Header from '../components/Header';
-import Loading from '../components/Loading';
-import ErrorDisplay from '../components/ErrorDisplay';
 import { addressApi } from '../api/address';
 import { areaApi } from '../api/area';
 import { tokyoWardsKo } from '../mocks/data';
@@ -36,7 +34,6 @@ const AddressInputPage: React.FC = () => {
   });
   const [signupData, setSignupData] = useState<SignupData | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   // 회원가입 데이터 받아오기
   useEffect(() => {
@@ -74,7 +71,6 @@ const AddressInputPage: React.FC = () => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsSubmitting(true);
-    setError(null);
 
     try {
       // 1. 지역 검색 (area 매칭) - 선택적, 실패해도 계속 진행
@@ -107,6 +103,7 @@ const AddressInputPage: React.FC = () => {
 
       console.log('주소 등록 완료:', address);
 
+<<<<<<< Updated upstream
       // 저장 후 어디서 왔는지에 따라 다른 페이지로 이동
       // location.state에 redirectTo가 있으면 그곳으로, 없으면 기본적으로 마이페이지로
       const redirectTo = location.state?.redirectTo || '/mypage';
@@ -115,6 +112,13 @@ const AddressInputPage: React.FC = () => {
       console.error('주소 등록 실패:', err);
       const errorMessage = err?.response?.data?.message || '주소 등록에 실패했습니다. 다시 시도해주세요.';
       setError(errorMessage);
+=======
+      // 저장 후 메인 페이지로 이동
+      navigate('/');
+    } catch (error) {
+      console.error('주소 등록 실패:', error);
+      alert('주소 등록에 실패했습니다. 다시 시도해주세요.');
+>>>>>>> Stashed changes
     } finally {
       setIsSubmitting(false);
     }
@@ -143,19 +147,7 @@ const AddressInputPage: React.FC = () => {
           </div>
 
           <div className="address-input-content">
-            {isSubmitting && (
-              <Loading message="주소를 등록하는 중입니다..." />
-            )}
-            
-            {error && !isSubmitting && (
-              <ErrorDisplay
-                title="주소 등록 실패"
-                message={error}
-                onRetry={() => setError(null)}
-              />
-            )}
-
-            {!isSubmitting && !error && step === 'prefecture' && (
+            {step === 'prefecture' && (
               <div className="step-content">
                 <h1 className="step-title">주소를 설정해주세요</h1>
                 <p className="step-subtitle">거주하시는 도/현을 선택해주세요</p>
@@ -171,7 +163,7 @@ const AddressInputPage: React.FC = () => {
               </div>
             )}
 
-            {!isSubmitting && !error && step === 'ward' && (
+            {step === 'ward' && (
               <div className="step-content">
                 <h1 className="step-title">구를 선택해주세요</h1>
                 <p className="step-subtitle">선택한 도/현: {formData.prefecture}</p>
@@ -192,7 +184,7 @@ const AddressInputPage: React.FC = () => {
               </div>
             )}
 
-            {!isSubmitting && !error && step === 'details' && (
+            {step === 'details' && (
               <div className="step-content">
                 <h1 className="step-title">상세 주소를 입력해주세요</h1>
                 <p className="step-subtitle">
