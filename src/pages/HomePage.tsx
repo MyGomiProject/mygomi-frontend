@@ -72,10 +72,13 @@ const formatDate = (d: Date) => {
   // 4. API 호출 
   // 로그인한 유저라면 유저의 addressId를, 아니면 constants.ts의 1619를 사용
   const addressId = user?.id ? (user as any).addressId || DEFAULT_ADDRESS_ID : DEFAULT_ADDRESS_ID;
- // 캘린더 데이터 조회 기간
-  const from = calendarDaysRange[0].dateStr;
-  const to = calendarDaysRange[41].dateStr;
-  const { data: events, isLoading, error } = useWeeklyCalendar({ addressId, from, to });
+  // 캘린더 데이터 조회 - year와 month 사용
+  const { data: events, isLoading, error } = useWeeklyCalendar({ 
+    addressId, 
+    year: currentYear, 
+    month: currentMonth + 1, // 0-based에서 1-based로 변환
+    isLoggedIn: !!user 
+  });
 
   // 5. 쓰레기 라벨 설정
   const wasteTypeLabels: Record<string, { label: string; emoji: string; class: string }> = {

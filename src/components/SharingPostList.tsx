@@ -1,25 +1,33 @@
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { sharePostApi } from '../api/sharePost';
+import Loading from './Loading';
+import ErrorDisplay from './ErrorDisplay';
 import './SharingPostList.css';
 
 interface SharingPost {
   id: string;
   title: string;
   description: string;
-  author: string;
-  location: string;
+  author?: string;
+  location?: string;
   createdAt: string;
   imageUrl?: string;
   imageUrls?: string[]; // 여러 장의 이미지
   category?: string;
   status?: 'OPEN' | 'RESERVED' | 'COMPLETED';
+  thumbnailUrl?: string;
+  ward?: string;
 }
 
 interface SharingPostListProps {
   posts?: SharingPost[];
   onPostClick?: (post: SharingPost) => void;
+  ward?: string;
+  status?: 'OPEN' | 'RESERVED' | 'COMPLETED';
 }
 
-const SharingPostList: React.FC<SharingPostListProps> = ({ posts, onPostClick }) => {
+const SharingPostList: React.FC<SharingPostListProps> = ({ posts, onPostClick, ward, status }) => {
   // 카테고리 한글 매핑
   const categoryLabels: Record<string, string> = {
     FURNITURE: '가구',
@@ -47,70 +55,26 @@ const SharingPostList: React.FC<SharingPostListProps> = ({ posts, onPostClick })
     return `${year}.${month}.${day}`;
   };
 
-  // 예시 데이터
-  const defaultPosts: SharingPost[] = posts || [
-    {
-      id: '1',
-      title: '전자레인지 나눔합니다',
-      description: '사용 잘하는 전자레인지입니다. 깨끗하게 사용했어요.',
-      author: '지윤',
-      location: '신주쿠구',
-      createdAt: '2024-01-29',
-      imageUrl: 'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?w=300&h=300&fit=crop',
-      imageUrls: [
-        'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?w=600&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=600&fit=crop',
-      ],
-      category: 'ELECTRONICS',
-      status: 'OPEN',
-    },
-    {
-      id: '2',
-      title: '책장 나눔합니다',
-      description: '작은 책장 나눔합니다. 상태 양호합니다.',
-      author: '신규구',
-      location: '시부야구',
-      createdAt: '2024-01-28',
-      imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=300&h=300&fit=crop',
-      imageUrls: [
-        'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&h=600&fit=crop',
-      ],
-      category: 'FURNITURE',
-      status: 'RESERVED',
-    },
-    {
-      id: '3',
-      title: '자전거 나눔합니다',
-      description: '자전거 나눔합니다. 잘 타고 다녔어요.',
-      author: '지험',
-      location: '미나토구',
-      createdAt: '2024-01-27',
-      imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&h=300&fit=crop',
-      imageUrls: [
-        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=600&fit=crop',
-      ],
-      category: 'ETC',
-      status: 'COMPLETED',
-    },
-    {
-      id: '4',
-      title: '자전거 나눔합니다',
-      description: '자전거 나눔합니다. 잘 타고 다녔어요.',
-      author: '지험',
-      location: '미나토구',
-      createdAt: '2024-01-27',
-      imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&h=300&fit=crop',
-      imageUrls: [
-        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=600&fit=crop',
-      ],
-      category: 'ETC',
-      status: 'COMPLETED',
-    },
-  ];
+  // API로 게시글 목록 조회
+  const { data: postsData, isLoading, error } = useQuery({
+    queryKey: ['share-posts', ward, status],
+    queryFn: () => sharePostApi.getPosts({ ward, status, page: 0, size: 20 }),
+    enabled: !posts, // posts prop이 제공되면 API 호출 안 함
+  });
+
+  // posts prop이 있으면 그것을 사용, 없으면 API 데이터 사용
+  const displayPosts: SharingPost[] = posts || postsData?.data.map((post) => ({
+    id: String(post.id),
+    title: post.title,
+    description: post.description || post.content || '',
+    author: post.author,
+    location: post.ward || post.location || '',
+    createdAt: post.createdAt,
+    imageUrl: post.thumbnailUrl || post.imageUrls?.[0],
+    imageUrls: post.imageUrls,
+    category: post.category,
+    status: post.status,
+  })) || [];
 
   const handlePostClick = (post: SharingPost) => {
     if (onPostClick) {
@@ -118,9 +82,21 @@ const SharingPostList: React.FC<SharingPostListProps> = ({ posts, onPostClick })
     }
   };
 
+  if (isLoading) {
+    return <Loading message="게시글을 불러오는 중..." />;
+  }
+
+  if (error) {
+    return <ErrorDisplay message="게시글을 불러오는데 실패했습니다." />;
+  }
+
+  if (displayPosts.length === 0) {
+    return <div className="no-posts">게시글이 없습니다.</div>;
+  }
+
   return (
     <div className="sharing-post-list">
-      {defaultPosts.map((post) => (
+      {displayPosts.map((post) => (
         <div
           key={post.id}
           className="sharing-post-card"
@@ -129,7 +105,14 @@ const SharingPostList: React.FC<SharingPostListProps> = ({ posts, onPostClick })
           <div className="post-content-wrapper">
             {post.imageUrl && (
               <div className="post-image">
-                <img src={post.imageUrl} alt={post.title} />
+                <img 
+                  src={
+                    post.imageUrl.startsWith('http://') || post.imageUrl.startsWith('https://')
+                      ? post.imageUrl
+                      : `http://localhost:8080${post.imageUrl.startsWith('/') ? post.imageUrl : `/${post.imageUrl}`}`
+                  } 
+                  alt={post.title} 
+                />
               </div>
             )}
             <div className="post-content">

@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import './SharingPostModal.css';
 
 interface SharingPost {
   id: string;
   title: string;
   description: string;
-  author: string;
-  location: string;
+  author?: string;
+  location?: string;
   createdAt: string;
   imageUrl?: string;
   imageUrls?: string[]; // 여러 장의 이미지
@@ -22,21 +22,61 @@ interface SharingPostModalProps {
 }
 
 const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClose, onViewDetail }) => {
+  // 이미지 URL을 전체 URL로 변환하는 함수
+  const getImageUrl = useCallback((url: string | undefined): string => {
+    if (!url) return '';
+    // 이미 전체 URL인 경우 (http:// 또는 https://로 시작)
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    // 상대 경로인 경우 백엔드 URL로 직접 변환
+    // 프록시가 작동하지 않을 경우를 대비해 직접 백엔드 URL 사용
+    const baseURL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+    return `${baseURL}${url.startsWith('/') ? url : `/${url}`}`;
+  }, []);
+
   // 이미지 배열 처리 (imageUrls가 있으면 사용, 없으면 imageUrl을 배열로 변환)
-  const images = post && (post.imageUrls && post.imageUrls.length > 0 
-    ? post.imageUrls 
-    : post.imageUrl 
-      ? [post.imageUrl] 
-      : []) || [];
+  const images = useMemo(() => {
+    if (!post) return [];
+    let imageList: string[] = [];
+    if (post.imageUrls && post.imageUrls.length > 0) {
+      imageList = post.imageUrls;
+    } else if (post.imageUrl) {
+      imageList = [post.imageUrl];
+    }
+    // 모든 이미지 URL을 전체 URL로 변환
+    const convertedImages = imageList.map(getImageUrl).filter(Boolean);
+    console.log('이미지 URL 변환:', {
+      원본: imageList,
+      변환됨: convertedImages,
+      변환_함수_결과: imageList.map(url => {
+        const result = getImageUrl(url);
+        console.log(`  "${url}" -> "${result}"`);
+        return result;
+      }),
+    });
+    return convertedImages;
+  }, [post, getImageUrl]);
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-  // 게시물이 변경되면 이미지 인덱스 초기화
+  // 게시물이 변경되면 이미지 인덱스 초기화 및 디버깅
   useEffect(() => {
     if (post) {
       setSelectedImageIndex(0);
+      console.log('모달에 전달된 게시글 데이터:', {
+        id: post.id,
+        title: post.title,
+        description: post.description,
+        descriptionLength: post.description?.length || 0,
+        imageUrls: post.imageUrls,
+        imageUrl: post.imageUrl,
+        images: images,
+        imagesLength: images.length,
+        author: post.author,
+      });
     }
-  }, [post?.id]);
+  }, [post, images]);
 
   // 카테고리 한글 매핑
   const categoryLabels: Record<string, string> = {
@@ -109,7 +149,20 @@ const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClo
           {/* 이미지 섹션 */}
           {images.length > 0 && (
             <div className="modal-image-section">
-              <img src={images[selectedImageIndex]} alt={`${post.title} - ${selectedImageIndex + 1}`} />
+              <img 
+                src={images[selectedImageIndex]} 
+                alt={`${post.title} - ${selectedImageIndex + 1}`}
+                onError={(e) => {
+                  console.error('이미지 로드 실패:', {
+                    src: images[selectedImageIndex],
+                    index: selectedImageIndex,
+                    allImages: images,
+                  });
+                }}
+                onLoad={() => {
+                  console.log('이미지 로드 성공:', images[selectedImageIndex]);
+                }}
+              />
               {images.length > 1 && (
                 <>
                   <button className="image-nav-button prev" onClick={handlePrevImage}>
@@ -157,7 +210,7 @@ const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClo
             <div className="modal-meta">
               <div className="modal-meta-item">
                 <span className="meta-label">작성자</span>
-                <span className="meta-value">{post.author}</span>
+                <span className="meta-value">{post.author || '본인'}</span>
               </div>
               <div className="modal-meta-item">
                 <span className="meta-label">작성일</span>
