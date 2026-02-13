@@ -4,23 +4,27 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { addressApi } from '../api/address';
 import { userApi } from '../api/user';
+import { sharePostApi } from '../api/sharePost';
 import Header from '../components/Header';
 import Loading from '../components/Loading';
 import ErrorDisplay from '../components/ErrorDisplay';
 import ParallaxBackground from '../components/ParallaxBackground';
 import EditInfoModal from '../components/EditInfoModal';
 import ChangePasswordModal from '../components/ChangePasswordModal';
+import SharingPostModal from '../components/SharingPostModal';
 import './MyPage.css';
 
 interface SharingPost {
   id: string;
   title: string;
   description: string;
-  location: string;
+  location?: string;
   createdAt: string;
   imageUrl?: string;
+  imageUrls?: string[];
   status: 'OPEN' | 'RESERVED' | 'COMPLETED';
   category?: string;
+  author?: string;
 }
 
 const MyPage: React.FC = () => {
@@ -31,6 +35,8 @@ const MyPage: React.FC = () => {
   const [deletingAddressId, setDeletingAddressId] = useState<number | null>(null);
   const [isEditInfoModalOpen, setIsEditInfoModalOpen] = useState(false);
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<SharingPost | null>(null);
+  const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const postsPerPage = 6;
 
   // 로그인하지 않은 경우 로그인 페이지로 리다이렉트
@@ -64,54 +70,28 @@ const MyPage: React.FC = () => {
     retry: 1,
   });
 
-  // 나눔 게시물 조회 (임시 Mock 데이터)
-  const mockPosts: SharingPost[] = [
-    {
-      id: '1',
-      title: '나무 의자 드림',
-      description: '사용 잘하는 나무 의자입니다.',
-      location: '도쿄 오타구',
-      createdAt: '2026-02-15',
-      imageUrl: 'https://images.unsplash.com/photo-1592078615290-033ee584e279?w=300&h=200&fit=crop',
-      status: 'OPEN',
-      category: 'FURNITURE',
-    },
-    {
-      id: '2',
-      title: '전자레인지 무료로 드립니다',
-      description: '작동 잘 되는 전자레인지입니다.',
-      location: '도쿄 오타구',
-      createdAt: '2026-02-10',
-      imageUrl: 'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?w=300&h=200&fit=crop',
-      status: 'RESERVED',
-      category: 'ELECTRONICS',
-    },
-    {
-      id: '3',
-      title: '자전거 나눔합니다',
-      description: '잘 타고 다녔던 자전거입니다.',
-      location: '도쿄 신주쿠구',
-      createdAt: '2026-02-08',
-      imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&h=200&fit=crop',
-      status: 'COMPLETED',
-      category: 'ETC',
-    },
-    {
-      id: '4',
-      title: '책장 나눔합니다',
-      description: '작은 책장 나눔합니다. 상태 양호합니다.',
-      location: '도쿄 시부야구',
-      createdAt: '2026-02-01',
-      imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=300&h=200&fit=crop',
-      status: 'OPEN',
-      category: 'FURNITURE',
-    },
-  ];
+  // 본인 나눔 게시물 조회
+  const { data: myPostsData, isLoading: myPostsLoading, error: myPostsError } = useQuery({
+    queryKey: ['my-share-posts', currentPage],
+    queryFn: () => sharePostApi.getMyPosts({ page: currentPage - 1, size: postsPerPage }),
+    enabled: !!token,
+  });
 
-  const totalPages = Math.ceil(mockPosts.length / postsPerPage);
-  const indexOfLastPost = currentPage * postsPerPage;
-  const indexOfFirstPost = indexOfLastPost - postsPerPage;
-  const currentPosts = mockPosts.slice(indexOfFirstPost, indexOfLastPost);
+  const myPosts: SharingPost[] = myPostsData?.data.map((post) => ({
+    id: String(post.id),
+    title: post.title,
+    description: post.description || post.content || '',
+    location: post.ward || post.location || '',
+    createdAt: post.createdAt,
+    imageUrl: post.thumbnailUrl || post.imageUrls?.[0],
+    imageUrls: post.imageUrls || (post.thumbnailUrl ? [post.thumbnailUrl] : []),
+    status: post.status || 'OPEN',
+    category: post.category,
+    author: userInfo?.nickname || '본인',
+  })) || [];
+
+  const totalPages = myPostsData?.meta ? Math.ceil(myPostsData.meta.total / postsPerPage) : 0;
+  const currentPosts = myPosts;
 
   const handleEditInfo = () => {
     setIsEditInfoModalOpen(true);
@@ -207,9 +187,48 @@ const MyPage: React.FC = () => {
     }
   };
 
-  const handlePostClick = (postId: string) => {
-    // 게시글 상세 페이지로 이동 (추후 구현)
-    console.log('게시글 클릭:', postId);
+  const handlePostClick = async (postId: string) => {
+    // 먼저 마이페이지에서 이미 가져온 데이터에서 찾기
+    const existingPost = myPosts.find(p => p.id === postId);
+    
+    if (existingPost) {
+      // 이미 가져온 데이터가 있으면 그대로 사용
+      console.log('기존 게시글 데이터 사용:', existingPost);
+      setSelectedPost(existingPost);
+      setIsPostModalOpen(true);
+    } else {
+      // 현재 페이지에 없으면 API로 상세 정보 가져오기
+      try {
+        const postDetail = await sharePostApi.getPost(postId);
+        console.log('API로 가져온 게시글 상세:', postDetail);
+        
+        // SharingPost 형식으로 변환
+        const post: SharingPost = {
+          id: String(postDetail.id),
+          title: postDetail.title,
+          description: postDetail.description || postDetail.content || '',
+          location: postDetail.ward || postDetail.location || '',
+          createdAt: postDetail.createdAt,
+          imageUrl: postDetail.thumbnailUrl || postDetail.imageUrls?.[0],
+          imageUrls: postDetail.imageUrls || (postDetail.thumbnailUrl ? [postDetail.thumbnailUrl] : []),
+          status: postDetail.status || 'OPEN',
+          category: postDetail.category,
+          author: userInfo?.nickname || postDetail.author || '본인',
+        };
+        
+        console.log('변환된 게시글 데이터:', post);
+        setSelectedPost(post);
+        setIsPostModalOpen(true);
+      } catch (error) {
+        console.error('게시글 상세 조회 실패:', error);
+        alert('게시글을 불러오는데 실패했습니다.');
+      }
+    }
+  };
+
+  const handleClosePostModal = () => {
+    setIsPostModalOpen(false);
+    setSelectedPost(null);
   };
 
   if (userLoading || addressesLoading) {
@@ -343,12 +362,25 @@ const MyPage: React.FC = () => {
           {/* 내가 올린 나눔 게시물 섹션 */}
           <div className="my-posts-section">
             <h2 className="my-posts-title">내가 올린 나눔 게시물</h2>
-            {currentPosts.length > 0 ? (
+            {myPostsLoading ? (
+              <Loading message="게시글을 불러오는 중..." />
+            ) : myPostsError ? (
+              <ErrorDisplay message="게시글을 불러오는데 실패했습니다." />
+            ) : currentPosts.length > 0 ? (
               <div className="posts-grid">
                 {currentPosts.map((post) => (
                   <div key={post.id} className="post-card" onClick={() => handlePostClick(post.id)}>
                     <div className="post-image">
-                      <img src={post.imageUrl} alt={post.title} />
+                      <img 
+                        src={
+                          post.imageUrl && (post.imageUrl.startsWith('http://') || post.imageUrl.startsWith('https://'))
+                            ? post.imageUrl
+                            : post.imageUrl
+                              ? `http://localhost:8080${post.imageUrl.startsWith('/') ? post.imageUrl : `/${post.imageUrl}`}`
+                              : ''
+                        } 
+                        alt={post.title} 
+                      />
                     </div>
                     <div className="post-content">
                       <div className="post-header">
@@ -404,6 +436,13 @@ const MyPage: React.FC = () => {
         isOpen={isChangePasswordModalOpen}
         onClose={() => setIsChangePasswordModalOpen(false)}
         onUpdate={handleUpdatePassword}
+      />
+
+      {/* 게시글 상세 모달 */}
+      <SharingPostModal
+        post={selectedPost}
+        isOpen={isPostModalOpen}
+        onClose={handleClosePostModal}
       />
     </div>
   );

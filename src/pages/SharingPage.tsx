@@ -11,8 +11,8 @@ interface SharingPost {
   id: string;
   title: string;
   description: string;
-  author: string;
-  location: string;
+  author?: string;
+  location?: string;
   createdAt: string;
   imageUrl?: string;
   imageUrls?: string[];
@@ -55,8 +55,8 @@ const SharingPage: React.FC = () => {
       id: marker.id,
       title: marker.title,
       description: marker.description || '',
-      author: marker.author || '',
-      location: marker.location || '',
+      author: marker.author,
+      location: marker.location,
       createdAt: marker.createdAt || new Date().toISOString(),
       imageUrl: marker.imageUrl,
       imageUrls: marker.imageUrls || (marker.imageUrl ? [marker.imageUrl] : undefined),

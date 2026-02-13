@@ -12,11 +12,16 @@ export interface SharePostRequest {
 }
 
 export interface SharePostResponse {
-  id: string;
+  id: string | number;
+  userId?: number;
   title: string;
-  content: string;
+  content?: string; // 일부 API에서는 content 사용
+  description?: string; // 일부 API에서는 description 사용
+  viewCount?: number;
   category: string;
+  categoryName?: string;
   status: 'OPEN' | 'RESERVED' | 'COMPLETED';
+  statusName?: string;
   prefecture?: string;
   ward?: string;
   town?: string;
@@ -27,6 +32,8 @@ export interface SharePostResponse {
   author?: string;
   location?: string;
   createdAt: string;
+  updatedAt?: string;
+  distance?: number | null;
 }
 
 export const sharePostApi = {
@@ -75,8 +82,9 @@ export const sharePostApi = {
     entries.forEach(([key, value]) => {
       if (value instanceof File) {
         console.log(`${key}:`, value.name, `(${value.size} bytes)`);
-      } else if (value instanceof Blob) {
-        console.log(`${key}:`, 'Blob', `(${value.size} bytes)`);
+      } else if (value && typeof value === 'object' && 'size' in value && 'type' in value) {
+        // Blob 타입 체크 (FormDataEntryValue 타입 이슈 회피)
+        console.log(`${key}:`, 'Blob', `(${(value as Blob).size} bytes)`);
       } else {
         console.log(`${key}:`, value);
       }
@@ -102,6 +110,40 @@ export const sharePostApi = {
   
   getPost: async (id: string): Promise<SharePostResponse> => {
     const response = await apiClient.get<SharePostResponse>(`/api/share-posts/${id}`);
+    return response.data;
+  },
+  
+  getPosts: async (params?: {
+    ward?: string;
+    status?: 'OPEN' | 'RESERVED' | 'COMPLETED';
+    page?: number;
+    size?: number;
+  }): Promise<{ data: SharePostResponse[]; meta: { total: number; page: number; size: number } }> => {
+    const queryParams = new URLSearchParams();
+    if (params?.ward) queryParams.append('ward', params.ward);
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+    if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+    
+    const queryString = queryParams.toString();
+    const url = `/api/share-posts${queryString ? `?${queryString}` : ''}`;
+    
+    const response = await apiClient.get<{ data: SharePostResponse[]; meta: { total: number; page: number; size: number } }>(url);
+    return response.data;
+  },
+  
+  getMyPosts: async (params?: {
+    page?: number;
+    size?: number;
+  }): Promise<{ data: SharePostResponse[]; meta: { total: number; page: number; size: number } }> => {
+    const queryParams = new URLSearchParams();
+    if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+    if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+    
+    const queryString = queryParams.toString();
+    const url = `/api/share-posts/me${queryString ? `?${queryString}` : ''}`;
+    
+    const response = await apiClient.get<{ data: SharePostResponse[]; meta: { total: number; page: number; size: number } }>(url);
     return response.data;
   },
   
