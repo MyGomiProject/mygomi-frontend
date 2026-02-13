@@ -383,8 +383,8 @@ const MyPage: React.FC = () => {
             ) : currentPosts.length > 0 ? (
               <div className="posts-grid">
                 {currentPosts.map((post) => (
-                  <div key={post.id} className="post-card" onClick={() => handlePostClick(post.id)}>
-                    <div className="post-image">
+                  <div key={post.id} className="my-post-card" onClick={() => handlePostClick(post.id)}>
+                    <div className="my-post-image">
                       <img 
                         src={
                           post.imageUrl && (post.imageUrl.startsWith('http://') || post.imageUrl.startsWith('https://'))
@@ -396,10 +396,10 @@ const MyPage: React.FC = () => {
                         alt={post.title} 
                       />
                     </div>
-                    <div className="post-content">
-                      <div className="post-header">
-                        <h3 className="post-title">{post.title}</h3>
-                        <span className={`post-status ${post.status.toLowerCase()}`}>
+                    <div className="my-post-content">
+                      <div className="my-post-header">
+                        <h3 className="my-post-title">{post.title}</h3>
+                        <span className={`my-post-status ${post.status.toLowerCase()}`}>
                           {post.status === 'OPEN' 
                             ? '나눔 대기' 
                             : post.status === 'RESERVED' 
@@ -409,8 +409,8 @@ const MyPage: React.FC = () => {
                             : '삭제됨'}
                         </span>
                       </div>
-                      <p className="post-date">{post.createdAt}</p>
-                      <p className="post-location">📍 {post.location}</p>
+                      <p className="my-post-date">{post.createdAt}</p>
+                      <p className="my-post-location">📍 {post.location}</p>
                     </div>
                   </div>
                 ))}
