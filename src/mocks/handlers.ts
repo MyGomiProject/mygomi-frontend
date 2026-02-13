@@ -42,11 +42,11 @@ http.post('/api/auth/login', async ({ request }) => {
     return HttpResponse.json({
       message: '이메일 또는 비밀번호가 올바르지 않습니다.',
     }, { status: 401 });
-  }),
-
-  http.post('/api/auth/signup', async ({ request }) => {
-    const body = await request.json();
-    const { email, password, nickname } = body as { email?: string; password?: string; nickname?: string };
+  }), 
+ 
+  http.post('/api/auth/signup', async ({ request }) => { 
+    const body = await request.json(); 
+    const { email, password, nickname } = body as { email?: string; password?: string; nickname?: string }; 
 
     // 간단히 이메일 중복을 막는 시나리오
     if (email === 'existing@example.com') {
@@ -172,6 +172,7 @@ http.post('/api/auth/login', async ({ request }) => {
 
     const address = mockAddresses.find(addr => addr.id === id);
 
+
     if (!address) {
       return HttpResponse.json({ message: '주소를 찾을 수 없습니다.' }, { status: 404 });
     }
@@ -198,7 +199,70 @@ http.post('/api/auth/login', async ({ request }) => {
     }
 
     return HttpResponse.json({
-      data: address,
+      data: address
+    });
+  }),
+
+  // REQ-03, 04 품목 검색 및 배출 방법 안내
+  http.get('/api/items/search', ({ request }) => {
+    const url = new URL(request.url);
+    const query = url.searchParams.get('q') || ''; // 검색어
+    const ward = url.searchParams.get('ward'); // 구 정보
+
+    // 민지님이 궁금해하던 품목들을 포함한 Mock Data 세트입니다.
+    const mockItems = [
+      {
+        id: 1,
+        nameKo: '피자 상자',
+        nameJa: 'ピザの箱',
+        wasteType: 'BURNABLE',
+        description: '음식물이나 기름이 묻은 종이는 재활용이 불가능합니다.',
+        ward: '大田区',
+        wardSpecificNote: '오타구는 오염된 종이를 가연성 쓰레기로 분류합니다.'
+      },
+      {
+        id: 2,
+        nameKo: '종이컵',
+        nameJa: '紙コップ',
+        wasteType: 'BURNABLE',
+        description: '내부 코팅 처리된 종이컵은 가연성 쓰레기로 배출하세요.',
+        ward: '大田区'
+      },
+      {
+        id: 3,
+        nameKo: '냉장고',
+        nameJa: '冷蔵庫',
+        wasteType: 'SODAI',
+        description: '가전제품 재활용법 대상입니다. 구청에 신고 후 배출하세요.',
+        ward: '大田区',
+        wardSpecificNote: '신고 후 대형 폐기물 스티커(A 또는 B)를 부착해야 합니다.'
+      },
+      {
+        id: 4,
+        nameKo: '페트병',
+        nameJa: 'ペットボトル',
+        wasteType: 'PLASTIC',
+        description: '뚜껑과 라벨을 제거하고 내용물을 비운 뒤 압착하여 배출하세요.',
+        ward: '大田区'
+      },
+      {
+        id: 5,
+        nameKo: '세면대',
+        nameJa: '洗面台',
+        wasteType: 'NON_BURNABLE',
+        description: '도자기 재질은 불연성 쓰레기로 분류됩니다.',
+        ward: '大田区'
+      }
+    ];
+
+    // 검색어(query)가 포함된 품목만 필터링합니다.
+    const filteredResults = mockItems.filter(item => 
+      item.nameKo.includes(query) || item.nameJa.includes(query)
+    );
+
+    // 검색 결과가 있으면 데이터 전달, 없으면 빈 배열 전달
+    return HttpResponse.json({
+      data: filteredResults
     });
   }),
 

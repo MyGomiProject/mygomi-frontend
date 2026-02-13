@@ -121,15 +121,29 @@ const formatDate = (d: Date) => {
                     <button onClick={handleNextMonth}>다음달 &gt;</button>
                   </div>
                 </div>
+                  {!user && (
+                      <span style={{ fontSize: '12px', color: '#727272', marginLeft: '8px' }}>
+                        ※ 로그인 시 상세 배출 정보가 표시됩니다.
+                      </span>
+                    )}
               </div>
               <div className="panel-placeholder calendar-placeholder">
-                <div className="calendar-grid">
-                  {/* 요일 헤더: 화살표 뒤에 소괄호 '('를 쓰는 것이 포인트! */}
-                  {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
-                    <div key={day} className="calendar-weekday-header">
-                      {day}
-                    </div>
-                  ))}
+                {isLoading ? (
+                  <Loading message="캘린더 데이터를 불러오는 중..." />
+                ) : error ? (
+                  <ErrorDisplay
+                    title="캘린더 로드 실패"
+                    message={error.message || '캘린더 데이터를 불러오는데 실패했습니다.'}
+                    onRetry={() => window.location.reload()}
+                  />
+                ) : (
+                  <div className="calendar-grid">
+                    {/* 요일 헤더 */}
+                    {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
+                      <div key={day} className="calendar-weekday-header">
+                        {day}
+                      </div>
+                    ))}
 
                   {/* 날짜 데이터 렌더링 부분 */}
                   {isLoading ? (
@@ -140,8 +154,8 @@ const formatDate = (d: Date) => {
                       const isToday = d.dateStr === formatDate(new Date());
 
                       return (
-                        <div 
-                          key={index} 
+                        <div
+                          key={index}
                           className={`calendar-day ${!d.isCurrentMonth ? 'not-current' : ''} ${isToday ? 'is-today' : ''}`}
                         >
                           <span className="day-number">{d.date.getDate()}</span>
@@ -162,6 +176,7 @@ const formatDate = (d: Date) => {
                     })
                   )}
                 </div>
+                )}
               </div>
             </div>
 
