@@ -6,7 +6,8 @@ interface ItemDetailViewProps {
   weekdays?: string[];
 }
 
-const ItemDetailView: React.FC<ItemDetailViewProps> = ({ item }) => {
+// 💡 수정 1: { item } 옆에 weekdays를 꼭 넣어주세요!
+const ItemDetailView: React.FC<ItemDetailViewProps> = ({ item, weekdays }) => {
   return (
     <div className="item-detail-card" style={{
       border: '1px solid #eee',
@@ -26,22 +27,21 @@ const ItemDetailView: React.FC<ItemDetailViewProps> = ({ item }) => {
 
       <hr style={{ border: '0', borderTop: '1px solid #eee', margin: '20px 0' }} />
 
-      {/* 버리는 방법 (REQ-03) */}
+      {/* 버리는 방법 */}
       <div style={{ marginBottom: '16px' }}>
         <h4 style={{ color: '#636E72' }}>✅ 버리는 방법</h4>
         <p style={{ lineHeight: '1.6' }}>{item.description}</p>
       </div>
 
-      {/* 수거 요일 (REQ-02 연동 준비) */}
+      {/* 수거 요일 */}
       <div style={{ marginBottom: '16px' }}>
         <h4 style={{ color: '#636E72' }}>📅 수거 요일 (내 지역 기준)</h4>
-        <p style={{ color: '#0984E3', fontWeight: '500' }}>매주 수요일</p>
-      </div>
-
-      {/* 주의사항 (REQ-04) */}
-      <div style={{ backgroundColor: '#FFF9F1', padding: '12px', borderRadius: '8px' }}>
-        <h4 style={{ color: '#E17055', margin: '0 0 8px 0' }}>⚠️ 주의사항</h4>
-        <p style={{ margin: 0, fontSize: '14px' }}>오염이 심하면 가연성 쓰레기로 분류해 주세요.</p>
+        <p style={{ color: '#0984E3', fontWeight: '500' }}>
+          {/* 💡 수정 2: 넘겨받은 weekdays 데이터를 실제로 화면에 출력하는 로직 추가! */}
+          {weekdays && weekdays.length > 0 
+            ? `매주 ${weekdays.join(', ')}요일` 
+            : '해당 지역의 수거 요일 정보가 없습니다.'}
+        </p>
       </div>
     </div>
   );

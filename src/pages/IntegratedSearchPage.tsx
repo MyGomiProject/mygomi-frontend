@@ -60,44 +60,58 @@ const IntegratedSearchPage: React.FC = () => {
     enabled: !!urlQuery,
     staleTime: 1000 * 60 * 60, // 1시간 캐시 유지!
   });
+// --------------------------------------------------------------------------
+  // 💡 [최종 검토 완료] 데이터 가공 로직 (TS7053 에러 해결 및 리스트화)
+  // --------------------------------------------------------------------------
+  const processedResults = useMemo(() => {
+    if (!searchResults || searchResults.length === 0) return [];
 
-  const combinedData = useMemo(() => {
-    if (!searchResults || searchResults.length === 0) return null;
+    return searchResults.map((item: any) => {
+      // 💡 [문제 3 해결] 백엔드 name 필드를 nameKo로 안전하게 매핑 (검색어 표시용)
+      const mappedItem = {
+        ...item,
+        nameKo: item.name || item.nameKo || '이름 없음'
+      };
 
-    const targetItem = searchResults[0];
-    const wasteType = targetItem.wasteType;
+      const wasteType = item.wasteType;
+      const events = calendarEvents || [];
+      
+      // 해당 분류 일정 필터링
+      const matchedEvents = events.filter(
+        (event) => event.extendedProps?.wasteType === wasteType
+      );
 
-    const events = calendarEvents || [];
-    const matchedEvents = events.filter(
-      (event) => event.extendedProps?.wasteType === wasteType
-    );
+      // 요일 추출 (중복 제거)
+      const weekdays = Array.from(new Set(
+        matchedEvents.map(event => {
+          const date = new Date(event.start);
+          return new Intl.DateTimeFormat('ko-KR', { weekday: 'short' }).format(date);
+        })
+      )).sort();
 
-    const uniqueWeekdays = Array.from(new Set(
-      matchedEvents.map(event => {
-        const date = new Date(event.start);
-        return new Intl.DateTimeFormat('ko-KR', { weekday: 'short' }).format(date);
-      })
-    )).sort();
+      // 💡 [문제 4 해결] 오늘 이후의 미래 일정만 필터링하여 과거 날짜 방지
+      const futureEvents = matchedEvents.filter(event => {
+        const eventDate = new Date(event.start);
+        eventDate.setHours(0, 0, 0, 0);
+        return eventDate.getTime() >= today.getTime();
+      });
 
-    const futureEvents = matchedEvents.filter(event => {
-      const eventDate = new Date(event.start);
-      eventDate.setHours(0, 0, 0, 0);
-      return eventDate.getTime() >= today.getTime();
+      let nextPickupText = '';
+      if (futureEvents.length > 0) {
+        // 날짜순 정렬 후 가장 가까운 날 선택
+        futureEvents.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+        const nextDate = new Date(futureEvents[0].start);
+        nextPickupText = `${nextDate.getMonth() + 1}월 ${nextDate.getDate()}일`;
+      }
+
+      return {
+        item: mappedItem,
+        // 💡 [TS7053 해결] 'as keyof typeof'로 타입을 확신시켜 빨간 줄 제거
+        label: WASTE_TYPE_LABELS[wasteType as keyof typeof WASTE_TYPE_LABELS],
+        weekdays,
+        nextPickupText
+      };
     });
-
-    let nextPickupText = '';
-    if (futureEvents.length > 0) {
-      futureEvents.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
-      const nextDate = new Date(futureEvents[0].start);
-      nextPickupText = `${nextDate.getMonth() + 1}월 ${nextDate.getDate()}일`;
-    }
-
-    return {
-      item: targetItem,
-      label: WASTE_TYPE_LABELS[wasteType],
-      weekdays: uniqueWeekdays,
-      nextPickupText: nextPickupText, // 💡 에러 해결: 리턴 객체에 이걸 꼭 넣어줘야 합니다!
-    };
   }, [searchResults, calendarEvents, today]);
 
   const handleSearch = () => {
@@ -119,52 +133,78 @@ const IntegratedSearchPage: React.FC = () => {
             <h1 className="hero-title">무엇을 버리고 싶으신가요?</h1>
             <p className="hero-subtitle">
               <span className="highlight">{displayWard}</span> 지역의 배출 정보를 알려드립니다.
-              
-              {!user && (
-                <span style={{ display: 'block', fontSize: '14px', color: '#ff6b6b', marginTop: '8px' }}>
-                  ※ 로그인을 하시면 현재 설정된 내 동네의 수거 일정을 바로 확인할 수 있습니다.
-                </span>
-              )}
             </p>
           </div>
         </section>
 
         <section className="search-section">
-          <SearchBox 
-            value={query} 
-            onChange={setQuery} 
-            onSearch={handleSearch} 
-          />
+          <SearchBox value={query} onChange={setQuery} onSearch={handleSearch} />
         </section>
 
+        {/* ----------------------------------------------------------------------
+            💡 여기서부터가 민지님이 요청하신 완벽 수정된 bottom-section입니다.
+        ----------------------------------------------------------------------- */}
         <section className="bottom-section">
           <div className="bottom-inner search-mode">
             <div className="search-results-container">
               {isItemError ? (
                 <ErrorDisplay 
                   title="데이터 로드 실패"
-                  message="서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요."
+                  message="서버 연결에 실패했습니다."
                   onRetry={() => window.location.reload()}
                 />
               ) : isLoading ? (
                 <Loading message="분류 정보와 수거 일정을 분석 중..." />
-              ) : combinedData ? (
-                <div className="result-wrapper">
-                  <ItemDetailView 
-                    item={combinedData.item} 
-                    weekdays={combinedData.weekdays} 
-                  />
+              ) : processedResults.length > 0 ? (
+                <div className="results-list-wrapper">
+                  
+                  {/* 💡 [문제 2 해결] 사용자가 헷갈리지 않게 검색어와 총 결과 개수 표시 */}
+                  <div className="search-summary-header" style={{ marginBottom: '24px', textAlign: 'left' }}>
+                    <h2 style={{ fontSize: '1.5rem', color: '#2D3436' }}>
+                      '<span style={{ color: '#00B894' }}>{urlQuery}</span>'에 대한 검색 결과입니다.
+                      <span style={{ fontSize: '1rem', color: '#636E72', marginLeft: '8px' }}>
+                        (총 {processedResults.length}건)
+                      </span>
+                    </h2>
+                  </div>
 
-                  {combinedData.nextPickupText && (
-                    <div style={{ marginTop: '16px', padding: '16px', backgroundColor: '#e3f2fd', borderRadius: '8px', textAlign: 'center', color: '#1565c0', fontWeight: 'bold' }}>
-                      이번 달 가장 가까운 수거일은 {combinedData.nextPickupText} 입니다! 🗑️
+                  {/* 💡 [문제 1 해결] 모든 결과를 리스트 형태(map)로 순회하며 렌더링 */}
+                  {processedResults.map((result, index) => (
+                    <div key={index} className="result-card-item" style={{ marginBottom: '40px' }}>
+                      {/* 아이템 상세 카드 */}
+                      <ItemDetailView 
+                        item={result.item} 
+                        weekdays={result.weekdays} 
+                      />
+                      
+                      {/* 가장 가까운 수거일 안내 (디자인 일관성 유지) */}
+                      {result.nextPickupText && (
+                        <div style={{ 
+                          marginTop: '-12px', 
+                          padding: '16px 24px', 
+                          backgroundColor: '#e3f2fd', 
+                          borderBottomLeftRadius: '16px', 
+                          borderBottomRightRadius: '16px', 
+                          color: '#1565c0', 
+                          fontWeight: 'bold',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          boxShadow: '0 4px 6px rgba(0,0,0,0.05)'
+                        }}>
+                          <span>📅</span>
+                          <span>{result.item.nameKo}의 가장 가까운 수거일은 <strong>{result.nextPickupText}</strong> 입니다!</span>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  ))}
                 </div>
               ) : (
+                // 검색 결과가 없는 경우
                 urlQuery && <NotFoundSection />
               )}
 
+              {/* 검색어가 없을 때의 초기 안내 */}
               {!urlQuery && (
                 <div className="search-info-text">
                   <p>궁금한 쓰레기나 물품 이름을 입력해주세요.</p>

@@ -33,13 +33,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
  const mapUserWithAddress = (userInfo: any, defaultEmail?: string): User => {
     const primaryAddress = userInfo.addresses?.find((addr: any) => addr.isPrimary);
 
+    // 💡 추가된 로직: fullAddress가 "도쿄도 오타구 이케가미" 라면 띄어쓰기로 분리해서 '구'로 끝나는 단어만 추출!
+    let extractedWard = '';
+    if (primaryAddress && primaryAddress.fullAddress) {
+      const parts = primaryAddress.fullAddress.split(' ');
+      extractedWard = parts.find((p: string) => p.endsWith('구')) || '';
+    }
+
     return {
       id: userInfo.id,
       email: userInfo.email || defaultEmail || '',
       nickname: userInfo.nickname || '',
       address: primaryAddress ? {
         id: primaryAddress.id,
-        ward: primaryAddress.ward,
+        ward: extractedWard,
         isPrimary: primaryAddress.isPrimary
       } : undefined
     };
