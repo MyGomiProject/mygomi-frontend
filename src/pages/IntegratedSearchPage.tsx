@@ -162,7 +162,7 @@ const IntegratedSearchPage: React.FC = () => {
                   <div className="search-summary-header" style={{ marginBottom: '24px', textAlign: 'left' }}>
                     <h2 style={{ fontSize: '1.5rem', color: '#2D3436' }}>
                       '<span style={{ color: '#00B894' }}>{urlQuery}</span>'에 대한 검색 결과입니다.
-                      <span style={{ fontSize: '1rem', color: '#636E72', marginLeft: '8px' }}>
+                      <span className="search-count">
                         (총 {processedResults.length}건)
                       </span>
                     </h2>

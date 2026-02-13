@@ -1,30 +1,89 @@
 /* src/pages/IntegratedSearchPage.css */
 
-/* 기존 HomePage의 스타일을 그대로 상속받는 느낌을 주기 위해 
-   bottom-inner 안에 들어갈 검색 전용 스타일만 정의합니다. */
+/* =========================================================
+   검색 결과 전용 스타일 (.search-mode)
+   ※ HomePage.css의 grid 설정을 덮어쓰고 가운데 정렬 블록으로 만듭니다.
+   ========================================================= */
+.bottom-inner.search-mode {
+  display: block; 
+  min-height: 60vh;
+  /* 목록형 컨텐츠에 맞게 최대 너비를 제한하고 가운데로 모읍니다 */
+  max-width: 800px; 
+  margin: 0 auto;
+  padding: 3rem; /* 여백을 조금 더 넉넉하게 줍니다 */
+}
 
+/* --------------------------------------
+   1. 컨테이너 및 텍스트
+-------------------------------------- */
 .search-results-container {
   display: flex;
   flex-direction: column;
-  align-items: center;
   width: 100%;
-  min-height: 400px; /* 결과가 없어도 박스 크기 유지 */
-}
-
-/* HomePage.css의 grid 설정을 덮어쓰기 위해 !important를 사용하거나
-   인라인 스타일을 쓸 수 있지만, 여기서는 클래스 추가로 해결합니다. */
-.bottom-inner.search-mode {
-  display: block; /* Grid 대신 Block으로 변경하여 넓게 씁니다 */
-  min-height: 60vh;
+  min-height: 400px;
 }
 
 .search-info-text {
   text-align: center;
-  color: #666;
-  margin-bottom: 2rem;
+  color: #888;
+  font-size: 1.1rem;
+  margin-top: 4rem;
 }
 
 .highlight {
-  color: #66bb6a;
-  font-weight: bold;
+  color: #00B894; /* 산뜻한 에코 민트색으로 변경 */
+  font-weight: 800;
+}
+
+/* --------------------------------------
+   2. 검색 결과 헤더 영역 (N건 검색 완료)
+-------------------------------------- */
+.search-summary-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f1f3f5; /* 타이틀 밑에 연한 구분선 */
+}
+
+.search-summary-header h2 {
+  font-size: 1.4rem;
+  color: #2D3436;
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+}
+
+.search-summary-header .search-count {
+  font-size: 1rem;
+  color: #adb5bd;
+  margin-left: 10px;
+  font-weight: 500;
+}
+
+/* --------------------------------------
+   3. 검색 결과 목록 (리스트형 스타일)
+-------------------------------------- */
+.results-list-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem; /* 카드 사이의 간격 */
+}
+
+/* 개별 카드 컨테이너에 호버 효과를 줍니다 */
+.result-card-item {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 16px;
+}
+
+.result-card-item:hover {
+  transform: translateY(-4px); /* 마우스 올리면 살짝 위로 */
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08); /* 그림자 강조 */
+}
+
+/* 카드 사이에 점선 구분선을 넣어서 '목록' 느낌을 살립니다 (마지막 카드 제외) */
+.result-card-item:not(:last-child)::after {
+  content: '';
+  display: block;
+  width: 100%;
+  border-bottom: 1px dashed #dee2e6;
+  margin-top: 2.5rem; 
 }
