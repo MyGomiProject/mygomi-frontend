@@ -17,7 +17,7 @@ interface SharingPost {
   imageUrl?: string;
   imageUrls?: string[];
   category?: string;
-  status?: 'OPEN' | 'RESERVED' | 'COMPLETED';
+  status?: 'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED';
 }
 
 const SharingPage: React.FC = () => {
@@ -49,7 +49,7 @@ const SharingPage: React.FC = () => {
     imageUrl?: string;
     imageUrls?: string[];
     category?: string;
-    status?: 'OPEN' | 'RESERVED' | 'COMPLETED';
+    status?: 'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED';
   }) => {
     const post: SharingPost = {
       id: marker.id,

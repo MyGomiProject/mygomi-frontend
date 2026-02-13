@@ -348,18 +348,23 @@
 }
 
 .post-status.open {
-  background: #fff3cd;
-  color: #856404;
+  background-color: rgba(102, 187, 106, 0.1);
+  color: #66bb6a;
 }
 
 .post-status.reserved {
-  background: #d1ecf1;
-  color: #0c5460;
+  background-color: rgba(255, 152, 0, 0.1);
+  color: #ff9800;
 }
 
 .post-status.completed {
-  background: #d4edda;
-  color: #155724;
+  background-color: rgba(153, 153, 153, 0.1);
+  color: #999;
+}
+
+.post-status.deleted {
+  background-color: rgba(244, 67, 54, 0.1);
+  color: #f44336;
 }
 
 .post-date {

@@ -22,7 +22,7 @@ interface SharingPost {
   createdAt: string;
   imageUrl?: string;
   imageUrls?: string[];
-  status: 'OPEN' | 'RESERVED' | 'COMPLETED';
+  status: 'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED';
   category?: string;
   author?: string;
 }
@@ -77,18 +77,20 @@ const MyPage: React.FC = () => {
     enabled: !!token,
   });
 
-  const myPosts: SharingPost[] = myPostsData?.data.map((post) => ({
-    id: String(post.id),
-    title: post.title,
-    description: post.description || post.content || '',
-    location: post.ward || post.location || '',
-    createdAt: post.createdAt,
-    imageUrl: post.thumbnailUrl || post.imageUrls?.[0],
-    imageUrls: post.imageUrls || (post.thumbnailUrl ? [post.thumbnailUrl] : []),
-    status: post.status || 'OPEN',
-    category: post.category,
-    author: userInfo?.nickname || '본인',
-  })) || [];
+  const myPosts: SharingPost[] = myPostsData?.data
+    .filter((post) => post.status !== 'DELETED') // DELETED 상태 게시물 제외
+    .map((post) => ({
+      id: String(post.id),
+      title: post.title,
+      description: post.description || post.content || '',
+      location: post.ward || post.location || '',
+      createdAt: post.createdAt,
+      imageUrl: post.thumbnailUrl || post.imageUrls?.[0],
+      imageUrls: post.imageUrls || (post.thumbnailUrl ? [post.thumbnailUrl] : []),
+      status: post.status || 'OPEN',
+      category: post.category,
+      author: userInfo?.nickname || '본인',
+    })) || [];
 
   const totalPages = myPostsData?.meta ? Math.ceil(myPostsData.meta.total / postsPerPage) : 0;
   const currentPosts = myPosts;
@@ -229,6 +231,18 @@ const MyPage: React.FC = () => {
   const handleClosePostModal = () => {
     setIsPostModalOpen(false);
     setSelectedPost(null);
+  };
+
+  const handleStatusUpdate = (postId: string, newStatus: 'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED') => {
+    // 게시글 목록 새로고침
+    queryClient.invalidateQueries({ queryKey: ['my-share-posts'] });
+    // 선택된 게시글도 업데이트
+    if (selectedPost && selectedPost.id === postId) {
+      setSelectedPost({
+        ...selectedPost,
+        status: newStatus,
+      });
+    }
   };
 
   if (userLoading || addressesLoading) {
@@ -386,7 +400,13 @@ const MyPage: React.FC = () => {
                       <div className="post-header">
                         <h3 className="post-title">{post.title}</h3>
                         <span className={`post-status ${post.status.toLowerCase()}`}>
-                          {post.status === 'OPEN' ? '나눔 중' : post.status === 'RESERVED' ? '예약 중' : '완료'}
+                          {post.status === 'OPEN' 
+                            ? '나눔 대기' 
+                            : post.status === 'RESERVED' 
+                            ? '예약됨' 
+                            : post.status === 'COMPLETED' 
+                            ? '나눔 완료' 
+                            : '삭제됨'}
                         </span>
                       </div>
                       <p className="post-date">{post.createdAt}</p>
@@ -443,6 +463,7 @@ const MyPage: React.FC = () => {
         post={selectedPost}
         isOpen={isPostModalOpen}
         onClose={handleClosePostModal}
+        onStatusUpdate={handleStatusUpdate}
       />
     </div>
   );

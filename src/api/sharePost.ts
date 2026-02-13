@@ -20,7 +20,7 @@ export interface SharePostResponse {
   viewCount?: number;
   category: string;
   categoryName?: string;
-  status: 'OPEN' | 'RESERVED' | 'COMPLETED';
+  status: 'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED';
   statusName?: string;
   prefecture?: string;
   ward?: string;
@@ -115,7 +115,7 @@ export const sharePostApi = {
   
   getPosts: async (params?: {
     ward?: string;
-    status?: 'OPEN' | 'RESERVED' | 'COMPLETED';
+    status?: 'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED';
     page?: number;
     size?: number;
   }): Promise<{ data: SharePostResponse[]; meta: { total: number; page: number; size: number } }> => {
@@ -177,6 +177,13 @@ export const sharePostApi = {
   
   deletePost: async (id: string): Promise<void> => {
     await apiClient.delete(`/api/share-posts/${id}`);
+  },
+  
+  updateStatus: async (id: string, status: 'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED'): Promise<SharePostResponse> => {
+    // 쿼리 파라미터 형식으로 PATCH 요청 (405 에러로 인해 PUT에서 PATCH로 변경)
+    console.log('상태 변경 요청:', { id, status, url: `/api/share-posts/${id}/status?status=${status}` });
+    const response = await apiClient.patch<SharePostResponse>(`/api/share-posts/${id}/status?status=${status}`);
+    return response.data;
   },
 };
 

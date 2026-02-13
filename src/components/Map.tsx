@@ -39,7 +39,7 @@ interface MapMarker {
   imageUrl?: string;
   imageUrls?: string[];
   category?: string;
-  status?: 'OPEN' | 'RESERVED' | 'COMPLETED';
+  status?: 'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED';
   author?: string;
   location?: string;
   createdAt?: string;
