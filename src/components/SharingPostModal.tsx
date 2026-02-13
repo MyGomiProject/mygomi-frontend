@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { sharePostApi } from '../api/sharePost';
 import './SharingPostModal.css';
 
 interface SharingPost {
@@ -11,7 +13,7 @@ interface SharingPost {
   imageUrl?: string;
   imageUrls?: string[]; // 여러 장의 이미지
   category?: string;
-  status?: 'OPEN' | 'RESERVED' | 'COMPLETED';
+  status?: 'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED';
 }
 
 interface SharingPostModalProps {
@@ -19,9 +21,12 @@ interface SharingPostModalProps {
   isOpen: boolean;
   onClose: () => void;
   onViewDetail?: (post: SharingPost) => void;
+  onStatusUpdate?: (postId: string, newStatus: 'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED') => void;
 }
 
-const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClose, onViewDetail }) => {
+const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClose, onViewDetail, onStatusUpdate }) => {
+  const queryClient = useQueryClient();
+  const [currentStatus, setCurrentStatus] = useState<'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED' | undefined>(post?.status);
   // 이미지 URL을 전체 URL로 변환하는 함수
   const getImageUrl = useCallback((url: string | undefined): string => {
     if (!url) return '';
@@ -60,10 +65,11 @@ const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClo
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-  // 게시물이 변경되면 이미지 인덱스 초기화 및 디버깅
+  // 게시물이 변경되면 이미지 인덱스 초기화 및 상태 동기화
   useEffect(() => {
     if (post) {
       setSelectedImageIndex(0);
+      setCurrentStatus(post.status);
       console.log('모달에 전달된 게시글 데이터:', {
         id: post.id,
         title: post.title,
@@ -74,9 +80,56 @@ const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClo
         images: images,
         imagesLength: images.length,
         author: post.author,
+        status: post.status,
       });
     }
   }, [post, images]);
+
+  // 상태 변경 mutation
+  const statusUpdateMutation = useMutation({
+    mutationFn: ({ postId, status }: { postId: string; status: 'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED' }) =>
+      sharePostApi.updateStatus(postId, status),
+    onSuccess: (data, variables) => {
+      setCurrentStatus(variables.status);
+      // 쿼리 캐시 업데이트
+      queryClient.invalidateQueries({ queryKey: ['my-share-posts'] });
+      queryClient.invalidateQueries({ queryKey: ['share-posts'] });
+      if (onStatusUpdate) {
+        onStatusUpdate(variables.postId, variables.status);
+      }
+      // DELETED 상태로 변경되면 모달 닫기
+      if (variables.status === 'DELETED') {
+        setTimeout(() => {
+          onClose();
+        }, 1000);
+      }
+    },
+    onError: (error) => {
+      console.error('상태 변경 실패:', error);
+      alert('상태 변경에 실패했습니다.');
+    },
+  });
+
+  const handleToggleStatus = () => {
+    if (!post) return;
+    
+    // OPEN ↔ COMPLETED 토글
+    const newStatus: 'OPEN' | 'COMPLETED' = currentStatus === 'OPEN' ? 'COMPLETED' : 'OPEN';
+    statusUpdateMutation.mutate({ postId: post.id, status: newStatus });
+  };
+
+  const handleDeletePost = () => {
+    if (!post) return;
+    
+    if (window.confirm('정말 이 게시물을 삭제하시겠습니까?')) {
+      statusUpdateMutation.mutate({ postId: post.id, status: 'DELETED' });
+    }
+  };
+
+  const handleOpenChat = () => {
+    // 채팅 기능은 추후 구현
+    alert('채팅 기능은 준비 중입니다.');
+  };
 
   // 카테고리 한글 매핑
   const categoryLabels: Record<string, string> = {
@@ -89,11 +142,12 @@ const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClo
     ETC: '기타',
   };
 
-  // 상태 한글 매핑
+  // 상태 한글 매핑 (4개 상태)
   const statusLabels: Record<string, { label: string; color: string; bgColor: string }> = {
     OPEN: { label: '나눔 대기', color: '#66bb6a', bgColor: 'rgba(102, 187, 106, 0.1)' },
     RESERVED: { label: '예약됨', color: '#ff9800', bgColor: 'rgba(255, 152, 0, 0.1)' },
-    COMPLETED: { label: '나눔 종료', color: '#999', bgColor: 'rgba(153, 153, 153, 0.1)' },
+    COMPLETED: { label: '나눔 완료', color: '#999', bgColor: 'rgba(153, 153, 153, 0.1)' },
+    DELETED: { label: '삭제됨', color: '#f44336', bgColor: 'rgba(244, 67, 54, 0.1)' },
   };
 
   // 날짜 포맷팅 함수
@@ -128,7 +182,11 @@ const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClo
     return null;
   }
 
-  const statusInfo = post.status ? statusLabels[post.status] || statusLabels.OPEN : null;
+  // 현재 상태 정보 가져오기 (currentStatus 우선 사용)
+  const displayStatus = currentStatus || post?.status;
+  const statusInfo = displayStatus 
+    ? (statusLabels[displayStatus] || (displayStatus === 'OPEN' ? statusLabels.OPEN : statusLabels.COMPLETED))
+    : null;
 
   const handlePrevImage = () => {
     setSelectedImageIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1));
@@ -234,8 +292,30 @@ const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClo
             </div>
 
             <div className="modal-actions">
-              <button className="action-button primary">나눔 신청하기</button>
-              <button className="action-button secondary">문의하기</button>
+              <button 
+                className="action-button primary" 
+                onClick={handleOpenChat}
+              >
+                나눔 채팅 열기
+              </button>
+              <button 
+                className={`action-button ${currentStatus === 'OPEN' ? 'secondary' : 'primary'}`}
+                onClick={handleToggleStatus}
+                disabled={statusUpdateMutation.isPending || currentStatus === 'DELETED'}
+              >
+                {statusUpdateMutation.isPending 
+                  ? '처리 중...' 
+                  : currentStatus === 'OPEN' 
+                    ? '나눔 종료' 
+                    : '나눔 시작'}
+              </button>
+              <button 
+                className="action-button delete-button"
+                onClick={handleDeletePost}
+                disabled={statusUpdateMutation.isPending || currentStatus === 'DELETED'}
+              >
+                {statusUpdateMutation.isPending ? '처리 중...' : '삭제'}
+              </button>
             </div>
           </div>
         </div>

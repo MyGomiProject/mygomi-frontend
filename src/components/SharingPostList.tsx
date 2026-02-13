@@ -15,7 +15,7 @@ interface SharingPost {
   imageUrl?: string;
   imageUrls?: string[]; // 여러 장의 이미지
   category?: string;
-  status?: 'OPEN' | 'RESERVED' | 'COMPLETED';
+  status?: 'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED';
   thumbnailUrl?: string;
   ward?: string;
 }
@@ -24,7 +24,7 @@ interface SharingPostListProps {
   posts?: SharingPost[];
   onPostClick?: (post: SharingPost) => void;
   ward?: string;
-  status?: 'OPEN' | 'RESERVED' | 'COMPLETED';
+  status?: 'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED';
 }
 
 const SharingPostList: React.FC<SharingPostListProps> = ({ posts, onPostClick, ward, status }) => {
@@ -44,6 +44,7 @@ const SharingPostList: React.FC<SharingPostListProps> = ({ posts, onPostClick, w
     OPEN: { label: '나눔 대기', color: '#66bb6a' },
     RESERVED: { label: '예약됨', color: '#ff9800' },
     COMPLETED: { label: '나눔 완료', color: '#999' },
+    DELETED: { label: '삭제됨', color: '#f44336' },
   };
 
   // 날짜 포맷팅 함수
