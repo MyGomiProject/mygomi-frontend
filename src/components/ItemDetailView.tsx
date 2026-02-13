@@ -3,6 +3,7 @@ import { SearchItem } from '../types/items';
 
 interface ItemDetailViewProps {
   item: SearchItem;
+  weekdays?: string[];
 }
 
 const ItemDetailView: React.FC<ItemDetailViewProps> = ({ item }) => {
