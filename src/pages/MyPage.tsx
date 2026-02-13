@@ -29,6 +29,15 @@ interface SharingPost {
 
 const MyPage: React.FC = () => {
   const navigate = useNavigate();
+
+  // 날짜 포맷팅 함수 (년.월.일 형식)
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}.${month}.${day}`;
+  };
   const { token } = useAuth();
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
@@ -79,18 +88,31 @@ const MyPage: React.FC = () => {
 
   const myPosts: SharingPost[] = myPostsData?.data
     .filter((post) => post.status !== 'DELETED') // DELETED 상태 게시물 제외
-    .map((post) => ({
-      id: String(post.id),
-      title: post.title,
-      description: post.description || post.content || '',
-      location: post.ward || post.location || '',
-      createdAt: post.createdAt,
-      imageUrl: post.thumbnailUrl || post.imageUrls?.[0],
-      imageUrls: post.imageUrls || (post.thumbnailUrl ? [post.thumbnailUrl] : []),
-      status: post.status || 'OPEN',
-      category: post.category,
-      author: userInfo?.nickname || '본인',
-    })) || [];
+    .map((post) => {
+      // 지역 정보 구성 (ward + town)
+      let locationStr = '';
+      if (post.ward) {
+        locationStr = post.ward;
+        if (post.town) {
+          locationStr += ` ${post.town}`;
+        }
+      } else if (post.location) {
+        locationStr = post.location;
+      }
+
+      return {
+        id: String(post.id),
+        title: post.title,
+        description: post.description || post.content || '',
+        location: locationStr,
+        createdAt: post.createdAt,
+        imageUrl: post.thumbnailUrl || post.imageUrls?.[0],
+        imageUrls: post.imageUrls || (post.thumbnailUrl ? [post.thumbnailUrl] : []),
+        status: post.status || 'OPEN',
+        category: post.category,
+        author: userInfo?.nickname || '본인',
+      };
+    }) || [];
 
   const totalPages = myPostsData?.meta ? Math.ceil(myPostsData.meta.total / postsPerPage) : 0;
   const currentPosts = myPosts;
@@ -409,8 +431,10 @@ const MyPage: React.FC = () => {
                             : '삭제됨'}
                         </span>
                       </div>
-                      <p className="my-post-date">{post.createdAt}</p>
-                      <p className="my-post-location">📍 {post.location}</p>
+                      <div className="my-post-footer">
+                        <p className="my-post-date">{formatDate(post.createdAt)}</p>
+                        <p className="my-post-location">📍 {post.location}</p>
+                      </div>
                     </div>
                   </div>
                 ))}

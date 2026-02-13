@@ -297,6 +297,8 @@
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   cursor: pointer;
   transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
 }
 
 .my-post-card:hover {
@@ -319,6 +321,9 @@
 
 .my-post-content {
   padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .my-post-header {
@@ -367,15 +372,22 @@
   color: #f44336;
 }
 
+.my-post-footer {
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
 .my-post-date {
   font-size: 0.9rem;
   color: #666;
   margin-bottom: 0.5rem;
+  margin-top: 0;
 }
 
 .my-post-location {
   font-size: 0.85rem;
   color: #999;
+  margin: 0;
 }
 
 .no-posts {
