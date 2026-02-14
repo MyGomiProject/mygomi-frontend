@@ -25,6 +25,7 @@ interface SharingPost {
   status: 'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED';
   category?: string;
   author?: string;
+  userId?: number; // 본인 게시글 확인용
 }
 
 const MyPage: React.FC = () => {
@@ -79,18 +80,32 @@ const MyPage: React.FC = () => {
 
   const myPosts: SharingPost[] = myPostsData?.data
     .filter((post) => post.status !== 'DELETED') // DELETED 상태 게시물 제외
-    .map((post) => ({
-      id: String(post.id),
-      title: post.title,
-      description: post.description || post.content || '',
-      location: post.ward || post.location || '',
-      createdAt: post.createdAt,
-      imageUrl: post.thumbnailUrl || post.imageUrls?.[0],
-      imageUrls: post.imageUrls || (post.thumbnailUrl ? [post.thumbnailUrl] : []),
-      status: post.status || 'OPEN',
-      category: post.category,
-      author: userInfo?.nickname || '본인',
-    })) || [];
+    .map((post) => {
+      // 지역 정보 구성 (ward + town)
+      let locationStr = '';
+      if (post.ward) {
+        locationStr = post.ward;
+        if (post.town) {
+          locationStr += ` ${post.town}`;
+        }
+      } else if (post.location) {
+        locationStr = post.location;
+      }
+
+      return {
+        id: String(post.id),
+        title: post.title,
+        description: post.description || post.content || '',
+        location: locationStr,
+        createdAt: post.createdAt,
+        imageUrl: post.thumbnailUrl || post.imageUrls?.[0],
+        imageUrls: post.imageUrls || (post.thumbnailUrl ? [post.thumbnailUrl] : []),
+        status: post.status || 'OPEN',
+        category: post.category,
+        author: userInfo?.nickname || '본인',
+        userId: post.userId || userInfo?.id, // 본인 게시글 확인용 (마이페이지는 항상 본인 게시글)
+      };
+    }) || [];
 
   const totalPages = myPostsData?.meta ? Math.ceil(myPostsData.meta.total / postsPerPage) : 0;
   const currentPosts = myPosts;
@@ -216,6 +231,7 @@ const MyPage: React.FC = () => {
           status: postDetail.status || 'OPEN',
           category: postDetail.category,
           author: userInfo?.nickname || postDetail.author || '본인',
+          userId: postDetail.userId || userInfo?.id, // 본인 게시글 확인용 (마이페이지는 항상 본인 게시글)
         };
         
         console.log('변환된 게시글 데이터:', post);

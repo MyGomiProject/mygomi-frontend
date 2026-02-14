@@ -1,5 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '../contexts/AuthContext';
 import { sharePostApi } from '../api/sharePost';
 import Loading from './Loading';
 import ErrorDisplay from './ErrorDisplay';
@@ -18,6 +19,7 @@ interface SharingPost {
   status?: 'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED';
   thumbnailUrl?: string;
   ward?: string;
+  userId?: number; // 본인 게시글 확인용
 }
 
 interface SharingPostListProps {
@@ -28,6 +30,7 @@ interface SharingPostListProps {
 }
 
 const SharingPostList: React.FC<SharingPostListProps> = ({ posts, onPostClick, ward, status }) => {
+  const { user } = useAuth();
   // 카테고리 한글 매핑
   const categoryLabels: Record<string, string> = {
     FURNITURE: '가구',
@@ -56,26 +59,72 @@ const SharingPostList: React.FC<SharingPostListProps> = ({ posts, onPostClick, w
     return `${year}.${month}.${day}`;
   };
 
-  // API로 게시글 목록 조회
+  // API로 게시글 목록 조회 (5km 이내 주변 게시글)
   const { data: postsData, isLoading, error } = useQuery({
-    queryKey: ['share-posts', ward, status],
-    queryFn: () => sharePostApi.getPosts({ ward, status, page: 0, size: 20 }),
+    queryKey: ['nearby-posts', ward, status],
+    queryFn: () => sharePostApi.getNearbyPosts({ page: 0, size: 20 }),
     enabled: !posts, // posts prop이 제공되면 API 호출 안 함
   });
 
   // posts prop이 있으면 그것을 사용, 없으면 API 데이터 사용
-  const displayPosts: SharingPost[] = posts || postsData?.data.map((post) => ({
-    id: String(post.id),
-    title: post.title,
-    description: post.description || post.content || '',
-    author: post.author,
-    location: post.ward || post.location || '',
-    createdAt: post.createdAt,
-    imageUrl: post.thumbnailUrl || post.imageUrls?.[0],
-    imageUrls: post.imageUrls,
-    category: post.category,
-    status: post.status,
-  })) || [];
+  const displayPosts: SharingPost[] = (() => {
+    if (posts) {
+      return posts;
+    }
+    
+    if (!postsData || !postsData.data) {
+      return [];
+    }
+    
+    // data가 배열인지 확인
+    const postsArray = Array.isArray(postsData.data) 
+      ? postsData.data 
+      : [];
+    
+    return postsArray
+      .filter((post) => {
+        // 본인 게시글 필터링: userId가 현재 사용자 id와 다르거나, userId가 없으면 표시
+        if (user && post.userId && post.userId === user.id) {
+          return false; // 본인 게시글은 제외
+        }
+        return true;
+      })
+      .map((post) => {
+        // 지역 정보 구성 (ward + town)
+        let locationStr = '';
+        if (post.ward) {
+          locationStr = post.ward;
+          if (post.town) {
+            locationStr += ` ${post.town}`;
+          }
+        } else if (post.location) {
+          locationStr = post.location;
+        }
+
+        // 디버깅: API 응답 구조 확인
+        if (!post.author && post.userId) {
+          console.log('게시글에 author 필드가 없습니다:', {
+            postId: post.id,
+            userId: post.userId,
+            전체응답: post,
+          });
+        }
+
+        return {
+          id: String(post.id),
+          title: post.title,
+          description: post.description || post.content || '',
+          author: post.author || '익명', // 백엔드에서 author 필드를 포함해서 반환해야 함
+          location: locationStr,
+          createdAt: post.createdAt,
+          imageUrl: post.thumbnailUrl || post.imageUrls?.[0],
+          imageUrls: post.imageUrls,
+          category: post.category,
+          status: post.status,
+          userId: post.userId, // 본인 게시글 확인을 위해 userId 추가
+        };
+      });
+  })();
 
   const handlePostClick = (post: SharingPost) => {
     if (onPostClick) {

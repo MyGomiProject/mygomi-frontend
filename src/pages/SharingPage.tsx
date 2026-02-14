@@ -18,6 +18,7 @@ interface SharingPost {
   imageUrls?: string[];
   category?: string;
   status?: 'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED';
+  userId?: number; // 본인 게시글 확인용
 }
 
 const SharingPage: React.FC = () => {
@@ -50,6 +51,7 @@ const SharingPage: React.FC = () => {
     imageUrls?: string[];
     category?: string;
     status?: 'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED';
+    userId?: number;
   }) => {
     const post: SharingPost = {
       id: marker.id,
@@ -62,6 +64,7 @@ const SharingPage: React.FC = () => {
       imageUrls: marker.imageUrls || (marker.imageUrl ? [marker.imageUrl] : undefined),
       category: marker.category,
       status: marker.status || 'OPEN',
+      userId: marker.userId, // 본인 게시글 확인용
     };
     setSelectedPost(post);
     setIsModalOpen(true);

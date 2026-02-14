@@ -185,6 +185,40 @@ export const sharePostApi = {
     const response = await apiClient.patch<SharePostResponse>(`/api/share-posts/${id}/status?status=${status}`);
     return response.data;
   },
+  
+  getNearbyPosts: async (params?: {
+    page?: number;
+    size?: number;
+  }): Promise<{ data: SharePostResponse[]; meta: { total: number; page: number; size: number } }> => {
+    // 대표 주소 기반으로 자동으로 5km 이내 게시글 조회
+    const queryParams = new URLSearchParams();
+    if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+    if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+    
+    const queryString = queryParams.toString();
+    const url = `/api/share-posts/nearby/me${queryString ? `?${queryString}` : ''}`;
+    
+    const response = await apiClient.get<{ 
+      data: {
+        content: SharePostResponse[];
+        totalPages: number;
+        totalElements: number;
+        number: number;
+        size: number;
+      };
+      meta: { timestamp: string };
+    }>(url);
+    
+    // 응답 구조 변환: data.content를 data로, 페이지네이션 정보 변환
+    return {
+      data: response.data.data.content || [],
+      meta: {
+        total: response.data.data.totalElements || 0,
+        page: response.data.data.number || 0,
+        size: response.data.data.size || 0,
+      },
+    };
+  },
 };
 
 
