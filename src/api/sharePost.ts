@@ -189,14 +189,22 @@ export const sharePostApi = {
   getNearbyPosts: async (params?: {
     page?: number;
     size?: number;
+    status?: 'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED';
   }): Promise<{ data: SharePostResponse[]; meta: { total: number; page: number; size: number } }> => {
     // 대표 주소 기반으로 자동으로 5km 이내 게시글 조회
     const queryParams = new URLSearchParams();
     if (params?.page !== undefined) queryParams.append('page', params.page.toString());
     if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+    // 상태 필터링: OPEN과 RESERVED만 조회 (백엔드가 지원하는 경우)
+    // 백엔드가 상태 파라미터를 지원하지 않으면 프론트엔드에서 필터링
+    if (params?.status) {
+      queryParams.append('status', params.status);
+    }
     
     const queryString = queryParams.toString();
     const url = `/api/share-posts/nearby/me${queryString ? `?${queryString}` : ''}`;
+    
+    console.log('getNearbyPosts API 호출:', url);
     
     const response = await apiClient.get<{ 
       data: {
@@ -208,6 +216,14 @@ export const sharePostApi = {
       };
       meta: { timestamp: string };
     }>(url);
+    
+    console.log('getNearbyPosts API 응답:', {
+      전체개수: response.data.data.totalElements,
+      상태별분류: (response.data.data.content || []).reduce((acc, post) => {
+        acc[post.status || 'UNKNOWN'] = (acc[post.status || 'UNKNOWN'] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>),
+    });
     
     // 응답 구조 변환: data.content를 data로, 페이지네이션 정보 변환
     return {

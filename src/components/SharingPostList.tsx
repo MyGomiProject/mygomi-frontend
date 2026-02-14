@@ -81,12 +81,28 @@ const SharingPostList: React.FC<SharingPostListProps> = ({ posts, onPostClick, w
       ? postsData.data 
       : [];
     
+    // 디버깅: API 응답 데이터 확인
+    console.log('전체 게시글 데이터:', postsArray);
+    console.log('게시글 상태별 분류:', {
+      OPEN: postsArray.filter(p => p.status === 'OPEN').length,
+      RESERVED: postsArray.filter(p => p.status === 'RESERVED').length,
+      COMPLETED: postsArray.filter(p => p.status === 'COMPLETED').length,
+      DELETED: postsArray.filter(p => p.status === 'DELETED').length,
+    });
+
     return postsArray
       .filter((post) => {
         // 본인 게시글 필터링: userId가 현재 사용자 id와 다르거나, userId가 없으면 표시
         if (user && post.userId && post.userId === user.id) {
+          console.log('본인 게시글 제외:', post.id, post.title);
           return false; // 본인 게시글은 제외
         }
+        // 상태 필터링: COMPLETED(나눔 완료)와 DELETED(삭제됨)는 제외, OPEN(나눔 대기)과 RESERVED(예약됨)는 표시
+        if (post.status === 'COMPLETED' || post.status === 'DELETED') {
+          console.log('완료/삭제 게시글 제외:', post.id, post.title, post.status);
+          return false;
+        }
+        console.log('게시글 표시:', post.id, post.title, post.status);
         return true;
       })
       .map((post) => {

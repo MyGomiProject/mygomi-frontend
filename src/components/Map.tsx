@@ -120,7 +120,14 @@ const Map: React.FC<MapProps> = ({
       : [];
     
     return postsArray
-      .filter((post) => post.status === 'OPEN' && post.lat && post.lng) // OPEN 상태이고 좌표가 있는 것만
+      .filter((post) => {
+        // 상태 필터링: COMPLETED(나눔 완료)와 DELETED(삭제됨)는 제외, OPEN(나눔 대기)과 RESERVED(예약됨)는 표시
+        if (post.status === 'COMPLETED' || post.status === 'DELETED') {
+          return false;
+        }
+        // 좌표가 있는 것만 표시
+        return post.lat && post.lng;
+      })
       .map((post) => {
         // 지역 정보 구성 (ward + town)
         let locationStr = '';
