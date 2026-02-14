@@ -143,6 +143,35 @@
   }
 }
 
+/* 본인 위치 마커 스타일 */
+.user-location-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.user-location-marker-container {
+  filter: drop-shadow(0 4px 12px rgba(33, 150, 243, 0.4));
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
+  animation: userMarkerPulse 2s ease-in-out infinite;
+}
+
+.user-location-marker-container:hover {
+  transform: scale(1.15) translateY(-4px);
+  filter: drop-shadow(0 6px 16px rgba(33, 150, 243, 0.5));
+}
+
+@keyframes userMarkerPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.9;
+  }
+}
+
 /* Leaflet 확대/축소 컨트롤 스타일 커스터마이징 */
 .leaflet-control-zoom {
   border: none !important;
