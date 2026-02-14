@@ -6,7 +6,7 @@
   overflow-y: auto;
   overflow-x: hidden; /* 좌우 스크롤 제거 */
   padding: 0.5rem 0.5rem 0.5rem 0;
-  max-height: calc(100vh - 300px);
+  min-height: 0; /* flex item이 부모 높이에 맞춰지도록 */
   width: 100%;
   box-sizing: border-box;
 }

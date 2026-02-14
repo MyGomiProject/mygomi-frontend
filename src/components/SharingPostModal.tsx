@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '../contexts/AuthContext';
 import { sharePostApi } from '../api/sharePost';
 import './SharingPostModal.css';
 
@@ -14,6 +15,7 @@ interface SharingPost {
   imageUrls?: string[]; // 여러 장의 이미지
   category?: string;
   status?: 'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED';
+  userId?: number; // 본인 게시글 확인용
 }
 
 interface SharingPostModalProps {
@@ -26,7 +28,11 @@ interface SharingPostModalProps {
 
 const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClose, onViewDetail, onStatusUpdate }) => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [currentStatus, setCurrentStatus] = useState<'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED' | undefined>(post?.status);
+  
+  // 본인 게시글인지 확인
+  const isMyPost = user && post?.userId && post.userId === user.id;
   // 이미지 URL을 전체 URL로 변환하는 함수
   const getImageUrl = useCallback((url: string | undefined): string => {
     if (!url) return '';
@@ -298,24 +304,28 @@ const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClo
               >
                 나눔 채팅 열기
               </button>
-              <button 
-                className={`action-button ${currentStatus === 'OPEN' ? 'secondary' : 'primary'}`}
-                onClick={handleToggleStatus}
-                disabled={statusUpdateMutation.isPending || currentStatus === 'DELETED'}
-              >
-                {statusUpdateMutation.isPending 
-                  ? '처리 중...' 
-                  : currentStatus === 'OPEN' 
-                    ? '나눔 종료' 
-                    : '나눔 시작'}
-              </button>
-              <button 
-                className="action-button delete-button"
-                onClick={handleDeletePost}
-                disabled={statusUpdateMutation.isPending || currentStatus === 'DELETED'}
-              >
-                {statusUpdateMutation.isPending ? '처리 중...' : '삭제'}
-              </button>
+              {isMyPost && (
+                <>
+                  <button 
+                    className={`action-button ${currentStatus === 'OPEN' ? 'secondary' : 'primary'}`}
+                    onClick={handleToggleStatus}
+                    disabled={statusUpdateMutation.isPending || currentStatus === 'DELETED'}
+                  >
+                    {statusUpdateMutation.isPending 
+                      ? '처리 중...' 
+                      : currentStatus === 'OPEN' 
+                        ? '나눔 종료' 
+                        : '나눔 시작'}
+                  </button>
+                  <button 
+                    className="action-button delete-button"
+                    onClick={handleDeletePost}
+                    disabled={statusUpdateMutation.isPending || currentStatus === 'DELETED'}
+                  >
+                    {statusUpdateMutation.isPending ? '처리 중...' : '삭제'}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

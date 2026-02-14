@@ -72,9 +72,10 @@
   gap: 1rem;
   min-height: 500px;
   height: 100%;
+  max-height: calc(100vh - 200px); /* 화면 높이에 맞춰 최대 높이 제한 */
   width: 100%;
   box-sizing: border-box;
-  overflow: visible; /* 호버 시 게시물이 잘리지 않도록 */
+  overflow: hidden; /* 섹션 자체는 스크롤하지 않음 */
   padding: 0.5rem 0; /* 상하 여백 추가 */
 }
 

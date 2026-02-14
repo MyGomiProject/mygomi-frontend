@@ -1,7 +1,9 @@
 import React, { useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { sharePostApi } from '../api/sharePost';
 import './Map.css';
 
 // 커스텀 마커 아이콘 생성 함수
@@ -43,6 +45,7 @@ interface MapMarker {
   author?: string;
   location?: string;
   createdAt?: string;
+  userId?: number; // 본인 게시글 확인용
 }
 
 interface MapProps {
@@ -99,8 +102,63 @@ const Map: React.FC<MapProps> = ({
   markers = [],
   onMarkerClick
 }) => {
-  // 기본 마커 데이터 (예시)
-  const defaultMarkers: MapMarker[] = markers.length > 0 ? markers : [
+  // 5km 이내 주변 게시글 조회
+  const { data: nearbyPostsData } = useQuery({
+    queryKey: ['nearby-posts-map'],
+    queryFn: () => sharePostApi.getNearbyPosts({ page: 0, size: 50 }),
+  });
+
+  // API 데이터를 마커 형식으로 변환
+  const apiMarkers: MapMarker[] = (() => {
+    if (!nearbyPostsData || !nearbyPostsData.data) {
+      return [];
+    }
+    
+    // data가 배열인지 확인
+    const postsArray = Array.isArray(nearbyPostsData.data) 
+      ? nearbyPostsData.data 
+      : [];
+    
+    return postsArray
+      .filter((post) => {
+        // 상태 필터링: COMPLETED(나눔 완료)와 DELETED(삭제됨)는 제외, OPEN(나눔 대기)과 RESERVED(예약됨)는 표시
+        if (post.status === 'COMPLETED' || post.status === 'DELETED') {
+          return false;
+        }
+        // 좌표가 있는 것만 표시
+        return post.lat && post.lng;
+      })
+      .map((post) => {
+        // 지역 정보 구성 (ward + town)
+        let locationStr = '';
+        if (post.ward) {
+          locationStr = post.ward;
+          if (post.town) {
+            locationStr += ` ${post.town}`;
+          }
+        } else if (post.location) {
+          locationStr = post.location;
+        }
+
+        return {
+          id: String(post.id),
+          position: [post.lat, post.lng] as [number, number],
+          title: post.title,
+          description: post.description || post.content || '',
+          imageUrl: post.thumbnailUrl || post.imageUrls?.[0],
+          imageUrls: post.imageUrls || (post.thumbnailUrl ? [post.thumbnailUrl] : []),
+          category: post.category,
+          status: post.status,
+          author: post.author || '익명',
+          location: locationStr,
+          createdAt: post.createdAt,
+          userId: post.userId, // 본인 게시글 확인용
+        };
+      });
+  })();
+
+  // markers prop이 있으면 우선 사용, 없으면 API 데이터 사용, 둘 다 없으면 기본 마커 사용
+  const defaultMarkers: MapMarker[] = markers.length > 0 ? markers : apiMarkers.length > 0 ? apiMarkers : [
     {
       id: '1',
       position: [35.6762, 139.6503] as [number, number],
