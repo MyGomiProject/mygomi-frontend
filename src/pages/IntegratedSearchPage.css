@@ -63,6 +63,69 @@
   margin-left: 10px;
   font-weight: 500;
 }
+/* src/pages/IntegratedSearchPage.css */
+
+/* ==========================================================================
+   [드롭다운 디자인 긴급 수정] SearchBox 확장 스타일
+   ========================================================================== */
+
+/* 1. 서치바 컨테이너 (기존 유지 + 여백 미세 조정) */
+.search-container.with-ward-selector {
+  display: flex;
+  align-items: center;
+  /* 💡 왼쪽 여백을 살짝 줘서 드롭다운이 벽에 너무 붙지 않게 함 */
+  padding-left: 6px; 
+  overflow: visible !important;
+}
+
+/* 2. 지역 선택기 래퍼 (호버 디자인의 핵심) */
+.ward-selector-wrapper {
+  flex: 0 0 auto;
+  min-width: 110px;
+  height: 40px; /* 💡 서치바 안에서 적당한 높이 차지 */
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* 💡 [핵심] 호버 배경이 서치바처럼 둥글게 나오도록 설정 */
+  border-radius: 20px; 
+  margin-right: 4px;
+  
+  /* 호버 범위가 너무 좁지 않게 패딩 추가 */
+  padding: 0 8px; 
+  
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+/* 🌟 호버 시: 둥근 알약 모양으로 배경색이 뜸 */
+.ward-selector-wrapper:hover {
+  background-color: rgba(0, 0, 0, 0.05); /* 아주 은은한 회색 */
+}
+
+/* 3. 검색 입력창 (연결부 정리) */
+.with-ward-selector .search-input {
+  flex: 1;
+  border: none !important;
+  outline: none;
+  background: transparent;
+  
+  /* 왼쪽 구분선 */
+  border-left: 1px solid #e0e0e0 !important; 
+  border-radius: 0;
+  
+  padding-left: 16px; 
+  height: 100%;
+}
+
+/* 공간 확보 (기존 유지) */
+.search-section {
+  position: relative;
+  z-index: 100;
+  padding-bottom: 250px;
+  margin-bottom: -250px;
+}
 
 /* --------------------------------------
    3. 검색 결과 목록 (리스트형 스타일)
@@ -70,28 +133,29 @@
 .results-list-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 2.5rem; /* 카드 사이의 간격 */
+  gap: 0;
 }
 
 /* 개별 카드 컨테이너에 호버 효과를 줍니다 */
 .result-card-item {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   border-radius: 16px;
+  background-color: white;
 }
 
 .result-card-item:hover {
-  transform: translateY(-4px); /* 마우스 올리면 살짝 위로 */
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08); /* 그림자 강조 */
+  transform: translateY(-4px); 
+  /* 그림자를 좀 더 진하고 부드럽게 */
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12); 
 }
 
-/* 카드 사이에 점선 구분선을 넣어서 '목록' 느낌을 살립니다 (마지막 카드 제외) */
-.result-card-item:not(:last-child)::after {
-  content: '';
-  display: block;
+.card-dashed-line {
   width: 100%;
-  border-bottom: 1px dashed #dee2e6;
-  margin-top: 2.5rem; 
+  height: 1px;
+  border-bottom: 1px dashed #dee2e6; /* 은은한 점선 */
+  margin: 40px 0; /* 위아래 간격 넉넉하게 (카드 사이 벌리기) */
 }
+
 
 /* --------------------------------------
    4. 다음 수거일 안내 박스

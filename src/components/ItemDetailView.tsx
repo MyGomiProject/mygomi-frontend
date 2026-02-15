@@ -1,7 +1,10 @@
 import React from 'react';
 import { SearchItem } from '../types/items';
-import './ItemDetailView.css';
 import { WASTE_TYPE_LABELS } from '../constants/waste';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+
+import './ItemDetailView.css';
 
 interface ItemDetailViewProps {
   item: SearchItem;
@@ -9,6 +12,8 @@ interface ItemDetailViewProps {
 }
 
 const ItemDetailView: React.FC<ItemDetailViewProps> = React.memo(({ item, weekdays }) => {
+  const { user } = useAuth(); 
+  const navigate = useNavigate();
   const wasteInfo = WASTE_TYPE_LABELS[item.wasteType as keyof typeof WASTE_TYPE_LABELS];
   const displayEmoji = wasteInfo ? wasteInfo.emoji : '♻️';
 
@@ -33,11 +38,21 @@ const ItemDetailView: React.FC<ItemDetailViewProps> = React.memo(({ item, weekda
 
       {/* 수거 요일 */}
       <div className="item-section">
-        <h4 className="section-title">📅 수거 요일 (내 지역 기준)</h4>
+        <h4 className="section-title">📅 수거 요일</h4>
         <p className="item-weekdays">
-          {weekdays && weekdays.length > 0 
-            ? `매주 ${weekdays.join(', ')}요일` 
-            : '해당 지역의 수거 요일 정보가 없습니다.'}
+          {!user ? (
+            <span 
+              style={{  cursor: 'pointer' }}
+              onClick={() => navigate('/login')}
+            >
+              로그인 후 확인 가능
+            </span>
+          ) : (
+            // 💡 로그인 시: 기존 로직 그대로
+            weekdays && weekdays.length > 0 
+              ? `매주 ${weekdays.join(', ')}요일` 
+              : '해당 지역의 수거 요일 정보가 없습니다.'
+          )}
         </p>
       </div>
     </div>

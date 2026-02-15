@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 
 import { itemsApi } from '../api/items';
-import { DEFAULT_WARD, DEFAULT_ADDRESS_ID } from '../constants/constants';
+import { DEFAULT_WARD, DEFAULT_ADDRESS_ID, TOKYO_WARDS_KO } from '../constants/constants';
 import { fetchCalendar } from '../api/calendar';
 import { WASTE_TYPE_LABELS } from '../constants/waste';
 
@@ -20,8 +20,6 @@ import { useAuth } from '../contexts/AuthContext';
 import './HomePage.css';
 import './IntegratedSearchPage.css';
 
-const TOKYO_WARDS = ['미나토구', '오타구', '신주쿠구', '시부야구', '나카노구', '스기나미구', '네리마구'];
-
 const IntegratedSearchPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -33,11 +31,10 @@ const IntegratedSearchPage: React.FC = () => {
 
   const [query, setQuery] = useState(urlQuery);
 
-  // 지역 선택 시 URL을 업데이트하는 함수
-  const handleWardChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newWard = e.target.value;
-    setSearchParams({ q: urlQuery, ward: newWard });
-  };
+  // 지역 선택 시 URL을 업데이트 - 문자열을 직접 받기
+  const handleWardChange = (newWard: string) => {
+  setSearchParams({ q: urlQuery, ward: newWard });
+};
 
   useEffect(() => {
     setQuery(urlQuery);
@@ -48,7 +45,8 @@ const IntegratedSearchPage: React.FC = () => {
   const { data: searchResults, isLoading: isItemLoading, isError: isItemError } = useQuery({
     queryKey: ['items-search', urlQuery, displayWard, !!user],
     queryFn: () => itemsApi.searchItems(urlQuery, displayWard, !!user),
-    enabled: !!urlQuery,
+    staleTime: 1000 * 60 * 5, // 5분동안은 데이터 유지(재요청x)
+    refetchOnWindowFocus: false, 
   });
 
   // 경고 해결: today를 useMemo 안으로 분리하여 의존성(dependency) 경고 완벽 해결
@@ -64,6 +62,7 @@ const IntegratedSearchPage: React.FC = () => {
     queryFn: () => fetchCalendar(addressId, today.getFullYear(), today.getMonth() + 1),
     enabled: !!urlQuery,
     staleTime: 1000 * 60 * 60, // 1시간
+    refetchOnWindowFocus: false,
   });
 
   const processedResults = useMemo(() => {
@@ -85,10 +84,11 @@ const IntegratedSearchPage: React.FC = () => {
       );
 
       // 요일 추출 (중복 제거)
+      const weekdayFormatter = new Intl.DateTimeFormat('ko-KR', { weekday: 'short' }); // 성능 최적화용(한 번만 생성)
       const weekdays = Array.from(new Set(
         matchedEvents.map(event => {
           const date = new Date(event.start);
-          return new Intl.DateTimeFormat('ko-KR', { weekday: 'short' }).format(date);
+          return weekdayFormatter.format(date);
         })
       )).sort();
 
@@ -134,34 +134,30 @@ const IntegratedSearchPage: React.FC = () => {
         <section className="hero-section">
           <div className="hero-content">
             <h1 className="hero-title">무엇을 버리고 싶으신가요?</h1>
-            
-            {/* 💡 [수정] 게스트일 때만 드롭다운을 보여주는 로직 */}
-              <div className="location-selector-container">
-                  {!user ? (
-                    <div className="guest-ward-selector">
-                      <span>지금 보고 계신 지역은 </span>
-                      <select 
-                        value={urlWard} 
-                        onChange={handleWardChange}
-                        className="ward-select-dropdown"
-                      >
-                        {TOKYO_WARDS.map(ward => (
-                          <option key={ward} value={ward}>{ward}</option>
-                        ))}
-                      </select>
-                      <span> 입니다.</span>
-                    </div>
-                  ) : (
-                    <p className="hero-subtitle">
-                      <span className="highlight">{displayWard}</span> 지역의 배출 정보를 알려드립니다.
-                    </p>
-                  )}
-                </div>
-              </div>
+
+              <p className="hero-subtitle">
+              {!user ? (
+                "지역을 선택하고 궁금한 물품을 검색해보세요."
+              ) : (
+                <>
+                  <span className="highlight">{displayWard}</span> 지역의 배출 정보를 알려드립니다.
+                </>
+              )}
+            </p>
+          </div>
         </section>
 
         <section className="search-section">
-          <SearchBox value={query} onChange={setQuery} onSearch={handleSearch} />
+          <SearchBox 
+            value={query} 
+            onChange={setQuery} 
+            onSearch={handleSearch}
+            // 비로그인(!user)일 때만 드롭다운 활성화
+            showWardSelector={!user} 
+            wards={TOKYO_WARDS_KO}
+            selectedWard={urlWard} 
+            onWardChange={handleWardChange}
+          />
         </section>
 
         {/* ----------------------------------------------------------------------
@@ -190,18 +186,26 @@ const IntegratedSearchPage: React.FC = () => {
 
                 {/* 모든 결과를 카드로 나열 */}
                 {processedResults.map((result, index) => (
-                  <div key={index} className="result-card-item">
-                    <ItemDetailView 
-                      item={result.item} 
-                      weekdays={result.weekdays} 
-                    />
-                    {result.nextPickupText && (
-                      <div className="next-pickup-info-box">
-                        📅 {result.item.nameKo}의 가장 가까운 수거일은 <strong>{result.nextPickupText}</strong> 입니다!
-                      </div>
-                    )}
-                  </div>
-                ))}
+  <React.Fragment key={index}>
+    {/* 1. 결과 카드 */}
+    <div className="result-card-item">
+      <ItemDetailView 
+        item={result.item} 
+        weekdays={result.weekdays} 
+      />
+      {result.nextPickupText && (
+        <div className="next-pickup-info-box">
+          📅 {result.item.nameKo}의 가장 가까운 수거일은 <strong>{result.nextPickupText}</strong> 입니다!
+        </div>
+      )}
+    </div>
+
+    {/* 💡 2. 점선 분리: 마지막 카드가 아닐 때만 점선을 "따로" 그려줍니다 */}
+    {index < processedResults.length - 1 && (
+      <div className="card-dashed-line"></div>
+    )}
+  </React.Fragment>
+))}
                 </div>
               ) : (
                 // 검색 결과가 없는 경우
