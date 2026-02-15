@@ -20,6 +20,9 @@ import { useAuth } from '../contexts/AuthContext';
 import './HomePage.css';
 import './IntegratedSearchPage.css';
 
+// useMemo 의존성 경고 제거용
+const weekdayFormatter = new Intl.DateTimeFormat('ko-KR', { weekday: 'short' });
+
 const IntegratedSearchPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -49,7 +52,6 @@ const IntegratedSearchPage: React.FC = () => {
     refetchOnWindowFocus: false, 
   });
 
-  // 경고 해결: today를 useMemo 안으로 분리하여 의존성(dependency) 경고 완벽 해결
   const today = useMemo(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
@@ -65,26 +67,38 @@ const IntegratedSearchPage: React.FC = () => {
     refetchOnWindowFocus: false,
   });
 
+// 🚀 [최적화] 캘린더 데이터를 미리 '이름표(Map)'로 정리
+  // 캘린더 데이터를 Map으로 변환 (최적화)
+  const eventsByWasteType = useMemo(() => {
+    const map = new Map<string, any[]>();
+    if (!calendarEvents) return map;
+
+    calendarEvents.forEach((event: any) => {
+      const type = event.extendedProps?.wasteType;
+      if (type) {
+        if (!map.has(type)) map.set(type, []);
+        map.get(type)!.push(event);
+      }
+    });
+    return map;
+  }, [calendarEvents]); // 캘린더 데이터가 오면 Map을 다시 만듦
+
+  // 2. 최종 결과 계산
   const processedResults = useMemo(() => {
     if (!searchResults || searchResults.length === 0) return [];
 
     return searchResults.map((item: any) => {
-      // 백엔드 name 필드를 nameKo로 안전하게 매핑 (검색어 표시용)
       const mappedItem = {
         ...item,
         nameKo: item.name || item.nameKo || '이름 없음'
       };
 
       const wasteType = item.wasteType;
-      const events = calendarEvents || [];
-      
-      // 해당 분류 일정 필터링
-      const matchedEvents = events.filter(
-        (event) => event.extendedProps?.wasteType === wasteType
-      );
 
-      // 요일 추출 (중복 제거)
-      const weekdayFormatter = new Intl.DateTimeFormat('ko-KR', { weekday: 'short' }); // 성능 최적화용(한 번만 생성)
+      // Map에서 바로 꺼내옴 (고속 조회)
+      const matchedEvents = eventsByWasteType.get(wasteType) || [];
+
+      // 요일 추출 (weekdayFormatter는 컴포넌트 밖의 것을 씀)
       const weekdays = Array.from(new Set(
         matchedEvents.map(event => {
           const date = new Date(event.start);
@@ -92,7 +106,7 @@ const IntegratedSearchPage: React.FC = () => {
         })
       )).sort();
 
-      // 오늘 이후의 미래 일정만 필터링하여 과거 날짜 방지
+      // 미래 일정 필터링
       const futureEvents = matchedEvents.filter(event => {
         const eventDate = new Date(event.start);
         eventDate.setHours(0, 0, 0, 0);
@@ -101,21 +115,21 @@ const IntegratedSearchPage: React.FC = () => {
 
       let nextPickupText = '';
       if (futureEvents.length > 0) {
-        // 날짜순 정렬 후 가장 가까운 날 선택
-        futureEvents.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+        futureEvents.sort((a: any, b: any) => new Date(a.start).getTime() - new Date(b.start).getTime());
         const nextDate = new Date(futureEvents[0].start);
         nextPickupText = `${nextDate.getMonth() + 1}월 ${nextDate.getDate()}일`;
       }
 
       return {
         item: mappedItem,
-        // 💡 [TS7053 해결] 'as keyof typeof'로 타입을 확신시켜 빨간 줄 제거
         label: WASTE_TYPE_LABELS[wasteType as keyof typeof WASTE_TYPE_LABELS],
         weekdays,
         nextPickupText
       };
     });
-  }, [searchResults, calendarEvents, today]);
+  }, [searchResults, eventsByWasteType, today]);
+
+
 
   const handleSearch = () => {
     if (query.trim()) {
