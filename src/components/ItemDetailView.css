@@ -1,0 +1,64 @@
+/* src/components/ItemDetailView.css */
+
+.item-detail-card {
+  border: 1px solid #eee;
+  border-radius: 16px;
+  padding: 24px;
+  background-color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* 카드 헤더 (아이콘 + 제목) */
+.item-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.item-icon {
+  font-size: 40px;
+  margin-right: 16px;
+}
+
+.item-title {
+  margin: 0;
+  color: #2D3436;
+  font-size: 1.5rem;
+}
+
+.item-waste-type {
+  color: #00B894;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+/* 구분선 */
+.item-divider {
+  border: 0;
+  border-top: 1px solid #eee;
+  margin: 20px 0;
+}
+
+/* 상세 정보 섹션 */
+.item-section {
+  margin-bottom: 16px;
+}
+
+.section-title {
+  color: #636E72;
+  margin: 0 0 8px 0; /* 하단 여백 살짝 추가 */
+  font-size: 1rem;
+}
+
+.item-description {
+  line-height: 1.6;
+  margin: 0;
+  color: #333;
+}
+
+.item-weekdays {
+  color: #0984E3;
+  font-weight: 500;
+  margin: 0;
+}

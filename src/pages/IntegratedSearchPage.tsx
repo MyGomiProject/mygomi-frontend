@@ -20,20 +20,25 @@ import { useAuth } from '../contexts/AuthContext';
 import './HomePage.css';
 import './IntegratedSearchPage.css';
 
+const TOKYO_WARDS = ['미나토구', '오타구', '신주쿠구', '시부야구', '나카노구', '스기나미구', '네리마구'];
+
 const IntegratedSearchPage: React.FC = () => {
   const navigate = useNavigate();
-  // 경고 해결: 안 쓰는 setSearchParams 삭제
-  const [searchParams] = useSearchParams();
-
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
-  // 경고 해결: 이제 addressId를 fetchCalendar에서 사용하므로 에러 안 남!
-  const addressId = user?.address?.id || DEFAULT_ADDRESS_ID;
 
+  const addressId = user?.address?.id || DEFAULT_ADDRESS_ID;
   const urlQuery = searchParams.get('q') || '';
   const urlWard = searchParams.get('ward') || DEFAULT_WARD;
 
   const [query, setQuery] = useState(urlQuery);
-  
+
+  // 지역 선택 시 URL을 업데이트하는 함수
+  const handleWardChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newWard = e.target.value;
+    setSearchParams({ q: urlQuery, ward: newWard });
+  };
+
   useEffect(() => {
     setQuery(urlQuery);
   }, [urlQuery]);
@@ -58,16 +63,14 @@ const IntegratedSearchPage: React.FC = () => {
     queryKey: ['calendar', addressId, today.getFullYear(), today.getMonth() + 1, !!user],
     queryFn: () => fetchCalendar(addressId, today.getFullYear(), today.getMonth() + 1),
     enabled: !!urlQuery,
-    staleTime: 1000 * 60 * 60, // 1시간 캐시 유지!
+    staleTime: 1000 * 60 * 60, // 1시간
   });
-// --------------------------------------------------------------------------
-  // 💡 [최종 검토 완료] 데이터 가공 로직 (TS7053 에러 해결 및 리스트화)
-  // --------------------------------------------------------------------------
+
   const processedResults = useMemo(() => {
     if (!searchResults || searchResults.length === 0) return [];
 
     return searchResults.map((item: any) => {
-      // 💡 [문제 3 해결] 백엔드 name 필드를 nameKo로 안전하게 매핑 (검색어 표시용)
+      // 백엔드 name 필드를 nameKo로 안전하게 매핑 (검색어 표시용)
       const mappedItem = {
         ...item,
         nameKo: item.name || item.nameKo || '이름 없음'
@@ -89,7 +92,7 @@ const IntegratedSearchPage: React.FC = () => {
         })
       )).sort();
 
-      // 💡 [문제 4 해결] 오늘 이후의 미래 일정만 필터링하여 과거 날짜 방지
+      // 오늘 이후의 미래 일정만 필터링하여 과거 날짜 방지
       const futureEvents = matchedEvents.filter(event => {
         const eventDate = new Date(event.start);
         eventDate.setHours(0, 0, 0, 0);
@@ -131,10 +134,30 @@ const IntegratedSearchPage: React.FC = () => {
         <section className="hero-section">
           <div className="hero-content">
             <h1 className="hero-title">무엇을 버리고 싶으신가요?</h1>
-            <p className="hero-subtitle">
-              <span className="highlight">{displayWard}</span> 지역의 배출 정보를 알려드립니다.
-            </p>
-          </div>
+            
+            {/* 💡 [수정] 게스트일 때만 드롭다운을 보여주는 로직 */}
+              <div className="location-selector-container">
+                  {!user ? (
+                    <div className="guest-ward-selector">
+                      <span>지금 보고 계신 지역은 </span>
+                      <select 
+                        value={urlWard} 
+                        onChange={handleWardChange}
+                        className="ward-select-dropdown"
+                      >
+                        {TOKYO_WARDS.map(ward => (
+                          <option key={ward} value={ward}>{ward}</option>
+                        ))}
+                      </select>
+                      <span> 입니다.</span>
+                    </div>
+                  ) : (
+                    <p className="hero-subtitle">
+                      <span className="highlight">{displayWard}</span> 지역의 배출 정보를 알려드립니다.
+                    </p>
+                  )}
+                </div>
+              </div>
         </section>
 
         <section className="search-section">
@@ -142,7 +165,7 @@ const IntegratedSearchPage: React.FC = () => {
         </section>
 
         {/* ----------------------------------------------------------------------
-            💡 여기서부터가 민지님이 요청하신 완벽 수정된 bottom-section입니다.
+            bottom-section: 검색 결과 및 아이템 상세 정보 렌더링
         ----------------------------------------------------------------------- */}
         <section className="bottom-section">
           <div className="bottom-inner search-mode">
@@ -157,47 +180,28 @@ const IntegratedSearchPage: React.FC = () => {
                 <Loading message="분류 정보와 수거 일정을 분석 중..." />
               ) : processedResults.length > 0 ? (
                 <div className="results-list-wrapper">
-                  
-                  {/* 💡 [문제 2 해결] 사용자가 헷갈리지 않게 검색어와 총 결과 개수 표시 */}
-                  <div className="search-summary-header" style={{ marginBottom: '24px', textAlign: 'left' }}>
-                    <h2 style={{ fontSize: '1.5rem', color: '#2D3436' }}>
-                      '<span style={{ color: '#00B894' }}>{urlQuery}</span>'에 대한 검색 결과입니다.
-                      <span className="search-count">
-                        (총 {processedResults.length}건)
-                      </span>
-                    </h2>
-                  </div>
+              {/* 검색 결과 요약 헤더 */}
+                <div className="search-summary-header">
+                  <h2>
+                    '<span className="highlight-text">{urlQuery}</span>'에 대한 검색 결과입니다.
+                    <span className="search-count">(총 {processedResults.length}건)</span>
+                  </h2>
+                </div>
 
-                  {/* 💡 [문제 1 해결] 모든 결과를 리스트 형태(map)로 순회하며 렌더링 */}
-                  {processedResults.map((result, index) => (
-                    <div key={index} className="result-card-item" style={{ marginBottom: '40px' }}>
-                      {/* 아이템 상세 카드 */}
-                      <ItemDetailView 
-                        item={result.item} 
-                        weekdays={result.weekdays} 
-                      />
-                      
-                      {/* 가장 가까운 수거일 안내 (디자인 일관성 유지) */}
-                      {result.nextPickupText && (
-                        <div style={{ 
-                          marginTop: '-12px', 
-                          padding: '16px 24px', 
-                          backgroundColor: '#e3f2fd', 
-                          borderBottomLeftRadius: '16px', 
-                          borderBottomRightRadius: '16px', 
-                          color: '#1565c0', 
-                          fontWeight: 'bold',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          boxShadow: '0 4px 6px rgba(0,0,0,0.05)'
-                        }}>
-                          <span>📅</span>
-                          <span>{result.item.nameKo}의 가장 가까운 수거일은 <strong>{result.nextPickupText}</strong> 입니다!</span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                {/* 모든 결과를 카드로 나열 */}
+                {processedResults.map((result, index) => (
+                  <div key={index} className="result-card-item">
+                    <ItemDetailView 
+                      item={result.item} 
+                      weekdays={result.weekdays} 
+                    />
+                    {result.nextPickupText && (
+                      <div className="next-pickup-info-box">
+                        📅 {result.item.nameKo}의 가장 가까운 수거일은 <strong>{result.nextPickupText}</strong> 입니다!
+                      </div>
+                    )}
+                  </div>
+                ))}
                 </div>
               ) : (
                 // 검색 결과가 없는 경우
