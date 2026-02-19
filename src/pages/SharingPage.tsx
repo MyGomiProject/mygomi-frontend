@@ -5,6 +5,7 @@ import ParallaxBackground from '../components/ParallaxBackground';
 import Map from '../components/Map';
 import SharingPostList from '../components/SharingPostList';
 import SharingPostModal from '../components/SharingPostModal';
+import AllPostsModal from '../components/AllPostsModal';
 import './SharingPage.css';
 
 interface SharingPost {
@@ -25,6 +26,8 @@ const SharingPage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedPost, setSelectedPost] = useState<SharingPost | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [isAllPostsModalOpen, setIsAllPostsModalOpen] = useState(false);
 
   const handleWriteClick = () => {
     navigate('/sharing/create');
@@ -93,6 +96,12 @@ const SharingPage: React.FC = () => {
                 </button>
               </div>
               <SharingPostList onPostClick={handlePostClick} />
+              <button 
+                className="view-all-button"
+                onClick={() => setIsAllPostsModalOpen(true)}
+              >
+                전체 목록 더보기 / 검색 🔍
+              </button>
             </div>
           </div>
         </div>
@@ -101,6 +110,12 @@ const SharingPage: React.FC = () => {
         post={selectedPost} 
         isOpen={isModalOpen} 
         onClose={handleCloseModal}
+      />
+
+      <AllPostsModal
+        isOpen={isAllPostsModalOpen}
+        onClose={() => setIsAllPostsModalOpen(false)}
+        onPostClick={handlePostClick} // 전체 보기 모달에서 글을 클릭하면 상세 모달이 뜨도록 연결!
       />
     </div>
   );

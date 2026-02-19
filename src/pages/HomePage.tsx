@@ -34,19 +34,22 @@ const formatDate = (d: Date) => {
 };
 
 // 2. 현재 달력 기준 날짜
-  const [currentDate, setCurrentDate] = useState(new Date());
+const [currentDate, setCurrentDate] = useState(new Date());
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
 
-  // 이전 달 이동
+// 이전 달 이동
   const handlePrevMonth = () => {
-    setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
+    // 💡 최신 상태(prevDate)를 기준으로 계산하도록 하여 안정성을 높입니다.
+    setCurrentDate(prevDate => new Date(prevDate.getFullYear(), prevDate.getMonth() - 1, 1));
   };
+
   // 다음 달 이동
   const handleNextMonth = () => {
-    setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
+    setCurrentDate(prevDate => new Date(prevDate.getFullYear(), prevDate.getMonth() + 1, 1));
   };
-  // 오늘로 이동
+
+  // 오늘로 이동 (기존 유지)
   const handleGoToday = () => {
     setCurrentDate(new Date());
   };
