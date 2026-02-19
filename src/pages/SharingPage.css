@@ -125,6 +125,46 @@
   transform: translateY(0);
 }
 
+/* =========================================
+   전체 목록 더보기 버튼 (기존 테마에 맞춤!)
+   ========================================= */
+.view-all-button {
+  width: 100%;
+  padding: 14px;
+  margin-top: auto;
+  background-color: #ffffff;
+  color: #66bb6a; /* 기존 글쓰기 버튼의 초록색 테마와 통일 */
+  border: 1.5px solid #66bb6a; /* 깔끔한 초록색 테두리 */
+  border-radius: 12px; /* 게시글 카드처럼 둥글게 */
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px; /* 텍스트와 돋보기 아이콘 사이 간격 */
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 187, 106, 0.1); /* 은은한 초록빛 그림자 */
+}
+
+.view-all-button:hover {
+  background-color: #f1f8e9; /* 마우스 올리면 아주 연한 초록색으로 배경 변경 */
+  transform: translateY(-2px); /* 살짝 위로 떠오르는 효과 */
+  box-shadow: 0 4px 12px rgba(102, 187, 106, 0.2);
+}
+
+.view-all-button:active {
+  transform: translateY(0); /* 클릭하면 다시 쏙 들어감 */
+  background-color: #e8f5e9;
+}
+
+.sharing-posts-section .sharing-post-list {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0; /* Flexbox 안에서 자식이 정상적으로 스크롤되게 하는 필수 속성 */
+  margin-bottom: 16px; /* 더보기 버튼과 너무 붙지 않게 여백 추가 */
+}
+
 @media (max-width: 768px) {
   .sharing-container {
     padding: 2rem 1rem;
@@ -144,30 +184,48 @@
     min-height: auto;
   }
 
-  .sharing-content-wrapper {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  background: rgba(255, 255, 255, 0.96);
-  border-radius: 24px;
-  padding: 2rem;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
-  min-height: 600px;
-}
-
-
-  .sharing-content-wrapper {
-    grid-template-columns: 1fr;
-    padding: 1.5rem;
-    min-height: auto;
-  }
-
   .sharing-map-section {
     min-height: 300px;
   }
 
   .sharing-posts-section {
     min-height: 400px;
+    max-height: none; /* 💡 추가: 좁은 화면에서는 억지로 짜부라들지 않게 높이 제한 풀기 */
+    height: auto;     /* 💡 추가: 콘텐츠 길이에 맞춰 자연스럽게 늘어나도록 */
   }
+
+/* =========================================
+   전체 목록 더보기 버튼 (홈페이지 침범 완벽 차단 🛡️)
+   ========================================= */
+.sharing-page .view-all-button {
+  width: 100%;
+  padding: 14px;
+  margin-top: auto;
+  background-color: #ffffff;
+  color: #66bb6a;
+  border: 1.5px solid #66bb6a;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 187, 106, 0.1);
+}
+
+.sharing-page .view-all-button:hover {
+  background-color: #f1f8e9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 187, 106, 0.2);
+}
+
+.sharing-page .view-all-button:active {
+  transform: translateY(0);
+  background-color: #e8f5e9;
+}
+
 }
 

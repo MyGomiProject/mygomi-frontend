@@ -27,9 +27,10 @@ interface SharingPostListProps {
   onPostClick?: (post: SharingPost) => void;
   ward?: string;
   status?: 'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED';
+  hideMyPosts?: boolean;
 }
 
-const SharingPostList: React.FC<SharingPostListProps> = ({ posts, onPostClick, ward, status }) => {
+const SharingPostList: React.FC<SharingPostListProps> = ({ posts, onPostClick, ward, status, hideMyPosts = false }) => {
   const { user } = useAuth();
   // 카테고리 한글 매핑
   const categoryLabels: Record<string, string> = {
@@ -93,7 +94,8 @@ const SharingPostList: React.FC<SharingPostListProps> = ({ posts, onPostClick, w
     return postsArray
       .filter((post) => {
         // 본인 게시글 필터링: userId가 현재 사용자 id와 다르거나, userId가 없으면 표시
-        if (user && post.userId && post.userId === user.id) {
+        // 수정: hideMyPosts가 true일 때만 내 글 숨기기
+        if (hideMyPosts && user && post.userId && post.userId === user.id) {
           console.log('본인 게시글 제외:', post.id, post.title);
           return false; // 본인 게시글은 제외
         }
