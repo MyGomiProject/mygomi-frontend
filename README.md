@@ -1,5 +1,5 @@
-# MyGomi（私のゴミ）
-<img width="1710" height="1107" alt="스크린샷 2026-02-02 오전 11 52 47" src="https://github.com/user-attachments/assets/f8473205-a93f-4e03-92f6-89007c4d1c98" />
+# MyGomi　Project
+<img width="1710" height="982" alt="스크린샷 2026-02-10 오후 1 41 46" src="https://github.com/user-attachments/assets/e6a0b604-1386-4fc2-bb4f-3837077581c6" />
 
 # Getting Started with Create React App
 
