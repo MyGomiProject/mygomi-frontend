@@ -1,0 +1,176 @@
+/* ==========================================
+   1. 애니메이션 및 레이아웃 (Global)
+   ========================================== */
+
+.auth-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background: transparent; 
+}
+
+/* 로그인/회원가입 페이지 전용 우측 하단 배경 이미지 조절 */
+.auth-page .background-image {
+  top: auto !important; 
+  left: auto !important;
+  bottom: 20px;
+  right: 0px;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 500px; 
+  background-position: right bottom !important;
+  background-size: contain !important;
+  pointer-events: none;
+}
+
+/* ==========================================
+   2. 카드 박스
+   ========================================== */
+
+.auth-form {
+  position: relative;
+  z-index: 10; /* 배경보다 항상 위에 위치 */
+  width: 100%;
+  max-width: 400px;
+  padding: 25px 40px;
+  
+  /* 유리 투과 효과 */
+  background: rgba(255, 255, 255, 0.85); 
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  
+  border-radius: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ==========================================
+   3. 헤더 및 로고 (Header)
+   ========================================== */
+
+.auth-form h2 {
+  font-size: 0; /* 원래 텍스트 숨김 */
+  margin-bottom: 35px;
+}
+
+.auth-form h2::after {
+  content: "MYGOMI"; 
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #66bb6a;
+  letter-spacing: -1px;
+  text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.8);
+}
+
+.auth-form input::placeholder {
+  color: #ccc; 
+  font-weight: 400;
+  font-size: 0.9rem;
+}
+
+/* ==========================================
+   4. 폼 요소 (Labels & Inputs)
+   ========================================== */
+
+.auth-form label {
+  width: 100%;
+  display: block;
+  margin-top: 18px;
+  margin-bottom: 6px;
+  margin-left: 12px;
+  font-size: 14px;
+  color: #555;
+  font-weight: 600;
+  text-align: left;
+}
+
+/* 최상단 이메일 레이블의 간격 조정 */
+.auth-form label:first-of-type {
+  margin-top: 10px;
+}
+
+.auth-form input {
+  width: 100%;
+  padding: 14px 20px;
+  border: 2px solid #f0f4f8; 
+  border-radius: 50px;
+  background-color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: #66bb6a;
+  background-color: #fff;
+  box-shadow: 0 4px 12px rgba(102, 187, 106, 0.15);
+  transform: translateY(-1px);
+}
+
+/* ==========================================
+   5. 버튼 및 하단 링크 (Actions)
+   ========================================== */
+
+.btn-primary {
+  width: 100%;
+  margin-top: 30px;
+  padding: 16px;
+  background: #66bb6a;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 8px 15px rgba(102, 187, 106, 0.2);
+}
+
+.btn-primary:hover {
+  background: #4caf50;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 20px rgba(102, 187, 106, 0.3);
+}
+
+.muted {
+  margin-top: 25px;
+  color: #888;
+  font-size: 14px;
+}
+
+.muted a {
+  color: #66bb6a !important; 
+  text-decoration: none;
+  font-weight: 700;
+  margin-left: 8px;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid transparent;
+}
+
+.muted a:hover {
+  color: #4caf50 !important;
+  border-bottom: 1px solid #4caf50;
+}
+
+/* 방문한 링크 */
+.muted a:visited {
+  color: #66bb6a !important;
+}
+
+/* 에러 메시지 스타일 (추가 관리용) */
+.error {
+  width: 100%;
+  color: #ef5350;
+  margin-top: 8px;
+  font-size: 12px;
+  text-align: left;
+  padding-left: 12px;
+}

@@ -37,34 +37,24 @@
 .hero-subtitle {
   font-size: 1.3rem;
   color: #555;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
   text-align: center;
 }
 
-.hero-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-  gap: 3rem;
-  align-items: center;
-}
-
-.hero-left {
-  text-align: left;
-}
-
-.hero-right {
-  display: flex;
-  justify-content: center;
+.search-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem 2rem;
 }
 
 .search-container {
   display: flex;
-  max-width: 600px;
+  gap: 12px;
+  max-width: 800px;
   margin: 0 auto;
-  gap: 1rem;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 1rem;
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 50px;
+  padding: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
@@ -72,7 +62,7 @@
   flex: 1;
   border: none;
   outline: none;
-  padding: 0.8rem 1.5rem;
+  padding: 14px 24px;
   font-size: 1rem;
   background: transparent;
   color: #333;
@@ -86,126 +76,23 @@
   background: #66bb6a;
   color: white;
   border: none;
-  padding: 0.8rem 2rem;
+  padding: 14px 32px;
   border-radius: 50px;
   font-size: 1rem;
-  font-weight: bold;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.2s;
+  white-space: nowrap;
 }
 
 .search-button:hover {
   background: #4caf50;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 187, 106, 0.3);
 }
 
-.japan-card {
-  width: 320px;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 24px;
-  padding: 1.5rem 1.5rem 1.2rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-}
-
-.japan-card-header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  margin-bottom: 1.2rem;
-}
-
-.japan-card-pill {
-  display: inline-flex;
-  align-self: flex-start;
-  padding: 0.15rem 0.8rem;
-  border-radius: 999px;
-  background: #ffecb3;
-  color: #8d6e63;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.japan-card-city {
-  font-size: 0.8rem;
-  color: #757575;
-}
-
-.japan-map-illustration {
-  position: relative;
-  height: 150px;
-  margin-bottom: 1rem;
-  border-radius: 18px;
-  background: linear-gradient(135deg, #bbdefb, #c8e6c9);
-  overflow: hidden;
-}
-
-.japan-island {
-  position: absolute;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 50px;
-}
-
-.japan-main {
-  width: 120px;
-  height: 40px;
-  top: 45%;
-  left: 35%;
-  transform: rotate(-20deg);
-}
-
-.japan-hokkaido {
-  width: 60px;
-  height: 28px;
-  top: 20%;
-  left: 45%;
-  transform: rotate(10deg);
-}
-
-.japan-kyushu {
-  width: 55px;
-  height: 26px;
-  bottom: 18%;
-  left: 30%;
-  transform: rotate(-35deg);
-}
-
-.recycle-icon {
-  position: absolute;
-  padding: 0.2rem 0.6rem;
-  border-radius: 999px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: #ffffff;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
-}
-
-.recycle-pet {
-  top: 18%;
-  left: 12%;
-  background: #42a5f5;
-}
-
-.recycle-burnable {
-  bottom: 18%;
-  right: 10%;
-  background: #ef5350;
-}
-
-.recycle-can {
-  top: 55%;
-  right: 18%;
-  background: #ffb74d;
-}
-
-.japan-card-footer {
-  font-size: 0.85rem;
-  color: #616161;
-  line-height: 1.4;
-}
-
-.japan-card-text {
-  margin: 0;
+.search-button:active {
+  transform: translateY(0);
 }
 
 .bottom-section {
@@ -236,6 +123,13 @@
   gap: 0.3rem;
 }
 
+.panel-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
 .panel-title {
   margin: 0;
   font-size: 1.2rem;
@@ -261,132 +155,135 @@
 
 .panel-placeholder {
   flex: 1;
-  border-radius: 18px;
-  background: #fafafa;
-  border: 1px dashed #e0e0e0;
-  padding: 1.2rem 1.4rem;
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  height: 333px;
+  overflow: hidden;
+}
+
+.calendar-placeholder {
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .map-placeholder {
-  padding: 0;
-  border: none;
-  background: transparent;
-  min-height: 300px;
+  height: 333px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 0.6rem;
+  border: 1px solid #e0e0e0;
+  background: #fff;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 .calendar-day {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 0.5rem 0.4rem;
+  min-height: 70px;
+  border: 0.5px solid #f0f0f0;
+  padding: 6px 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  gap: 4px;
 }
 
-.calendar-day-label {
-  font-size: 0.75rem;
-  color: #757575;
+.calendar-day.not-current {
+  background: #fafafa;
+  color: #ccc;
 }
 
-.calendar-badge {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #81c784, #66bb6a);
-  opacity: 0.45;
+.calendar-day.is-today {
+  border: 2px solid #ff7043;
+  background: #fff9f7;
 }
 
-.panel-description {
+.day-number {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.waste-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  align-items: center;
+}
+
+.waste-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.waste-emoji {
+  font-size: 1.2rem;
+}
+
+.waste-label-text {
+  font-size: 0.65rem;
+  color: #66bb6a;
+  font-weight: bold;
+}
+
+.calendar-controls {
+  display: flex;
+  gap: 8px;
   margin: 0;
+  flex-shrink: 0;
+}
+
+.calendar-controls button {
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 5px 12px;
+  border-radius: 20px;
   font-size: 0.8rem;
-  color: #9e9e9e;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.map-area {
-  position: relative;
-  height: 150px;
-  border-radius: 16px;
-  overflow: hidden;
-  background: #e3f2fd;
+.calendar-controls button:hover {
+  background: #66bb6a;
+  color: white;
+  border-color: #66bb6a;
 }
 
-.map-block {
-  position: absolute;
-  border-radius: 16px;
+.calendar-weekday-header {
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+  padding: 10px 0;
+  color: #555;
+  border-bottom: 1px solid #eee;
 }
 
-.map-water {
-  background: #bbdefb;
-  inset: 12% 30% 18% 5%;
+.calendar-weekday-header:nth-child(1) {
+  color: #ff5252;
 }
 
-.map-park {
-  background: #c8e6c9;
-  inset: 45% 6% 8% 45%;
+.calendar-weekday-header:nth-child(7) {
+  color: #448aff;
 }
 
-.map-town {
-  background: #ffe0b2;
-  inset: 25% 12% 40% 40%;
-}
-
-.map-pin {
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  border-radius: 999px;
-  background: #ef5350;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
-}
-
-.pin-one {
-  top: 26%;
-  left: 32%;
-}
-
-.pin-two {
-  top: 52%;
-  right: 24%;
-}
-
-.pin-three {
-  bottom: 20%;
-  left: 52%;
+.calendar-loading {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 2rem;
+  color: #666;
 }
 
 @media (max-width: 768px) {
   .hero-section {
     padding: 4rem 1.5rem 2.5rem;
-  }
-
-  .hero-layout {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 2.5rem;
-  }
-
-  .hero-left {
-    text-align: center;
-  }
-
-  .search-container {
-    margin-top: 1.5rem;
-    flex-direction: column;
-    border-radius: 20px;
-  }
-
-  .search-button {
-    width: 100%;
   }
 
   .hero-title {
@@ -397,8 +294,23 @@
     font-size: 1.1rem;
   }
 
-  .japan-card {
+  .search-section {
+    padding: 0 1.5rem 1.5rem;
+  }
+
+  .search-container {
+    flex-direction: column;
+    border-radius: 24px;
+    padding: 12px;
+  }
+
+  .search-input {
+    padding: 12px 16px;
+  }
+
+  .search-button {
     width: 100%;
+    padding: 12px;
   }
 
   .bottom-section {
@@ -408,6 +320,17 @@
   .bottom-inner {
     grid-template-columns: minmax(0, 1fr);
     padding: 1.5rem;
+  }
+
+  .panel-header-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+
+  .calendar-controls {
+    width: 100%;
+    justify-content: flex-start;
   }
 }
 
