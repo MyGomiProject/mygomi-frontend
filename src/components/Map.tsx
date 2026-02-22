@@ -10,6 +10,14 @@ import './Map.css';
 
 const DEFAULT_CENTER: [number, number] = [35.6762, 139.6503]; // 도쿄 기본 위치
 
+/** API가 주는 상대 경로(/uploads/...)를 이미지 요청 가능한 절대 URL로 변환 */
+function getImageUrl(url: string | undefined): string | undefined {
+  if (!url) return undefined;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  const base = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+  return `${base}${url.startsWith('/') ? url : `/${url}`}`;
+}
+
 // 게시글 마커용 아이콘
 const createCustomIcon = () => {
   return L.divIcon({
@@ -197,13 +205,15 @@ const Map: React.FC<MapProps> = ({
           locationStr = post.location;
         }
 
+        const rawThumb = post.thumbnailUrl || post.imageUrls?.[0];
+        const rawUrls = post.imageUrls || (post.thumbnailUrl ? [post.thumbnailUrl] : []);
         return {
           id: String(post.id),
           position: [post.lat, post.lng] as [number, number],
           title: post.title,
           description: post.description || post.content || '',
-          imageUrl: post.thumbnailUrl || post.imageUrls?.[0],
-          imageUrls: post.imageUrls || (post.thumbnailUrl ? [post.thumbnailUrl] : []),
+          imageUrl: getImageUrl(rawThumb),
+          imageUrls: rawUrls.map((u) => getImageUrl(u)).filter((u): u is string => !!u),
           category: post.category,
           status: post.status,
           author: post.author || '익명',
