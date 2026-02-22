@@ -12,6 +12,15 @@ import ParallaxBackground from '../components/ParallaxBackground';
 import EditInfoModal from '../components/EditInfoModal';
 import ChangePasswordModal from '../components/ChangePasswordModal';
 import SharingPostModal from '../components/SharingPostModal';
+import ChatRoomModal, {
+  ChatPostInfo,
+  getChatRoomList,
+  buildChatRoomListFromApi,
+  deleteChatRoomFromList,
+  removePostChatFromList,
+  ChatRoomListItem,
+} from '../components/ChatRoomModal';
+import { chatApi } from '../api/chat';
 import './MyPage.css';
 
 interface SharingPost {
@@ -38,7 +47,25 @@ const MyPage: React.FC = () => {
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<SharingPost | null>(null);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [chatPost, setChatPost] = useState<ChatPostInfo | null>(null);
+  const [chatRoomList, setChatRoomList] = useState<ChatRoomListItem[]>([]);
+  const [chatListVersion, setChatListVersion] = useState(0);
   const postsPerPage = 6;
+
+  const { data: apiRooms } = useQuery({
+    queryKey: ['chat-rooms'],
+    queryFn: () => chatApi.getRooms(),
+    enabled: !!token,
+  });
+
+  // 채팅방 목록: API 방 목록 우선, 없으면 post 기반 로컬 목록
+  useEffect(() => {
+    if (apiRooms && apiRooms.length >= 0) {
+      setChatRoomList(buildChatRoomListFromApi(apiRooms));
+    } else {
+      setChatRoomList(getChatRoomList());
+    }
+  }, [apiRooms, chatPost, chatListVersion]);
 
   // 로그인하지 않은 경우 로그인 페이지로 리다이렉트
   useEffect(() => {
@@ -286,6 +313,15 @@ const MyPage: React.FC = () => {
   const displayEmail = userInfo?.email || '이메일 없음';
   const joinDate = userInfo?.createdAt ? new Date(userInfo.createdAt).toLocaleDateString('ko-KR') : 'N/A';
 
+  /** 게시물 날짜를 년.월.일만 표시 */
+  const formatPostDate = (dateString: string) => {
+    const d = new Date(dateString);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}.${m}.${day}`;
+  };
+
   return (
     <div className="my-page">
       <ParallaxBackground />
@@ -299,20 +335,69 @@ const MyPage: React.FC = () => {
         {/* 사용자 정보 및 주소 카드 */}
         <section className="my-page-content">
           <div className="info-card">
-            {/* 왼쪽: 사용자 프로필 */}
+            {/* 왼쪽: 사용자 프로필 + 채팅방 목록 */}
             <div className="profile-section">
-              <div className="profile-header">
-                <h2 className="profile-name">{displayName}</h2>
-                <p className="profile-email">{displayEmail}</p>
-                <p className="profile-join-date">가입일 · {joinDate}</p>
+              <div className="profile-row">
+                <div className="profile-header">
+                  <h2 className="profile-name">{displayName}</h2>
+                  <p className="profile-email">{displayEmail}</p>
+                  <p className="profile-join-date">가입일 · {joinDate}</p>
+                </div>
+                <div className="profile-actions">
+                  <button className="action-button" onClick={handleEditInfo}>
+                    정보 수정
+                  </button>
+                  <button className="action-button" onClick={handleChangePassword}>
+                    비밀번호 변경
+                  </button>
+                </div>
               </div>
-              <div className="profile-actions">
-                <button className="action-button" onClick={handleEditInfo}>
-                  정보 수정
-                </button>
-                <button className="action-button" onClick={handleChangePassword}>
-                  비밀번호 변경
-                </button>
+              {/* 채팅방 목록 (개인정보 바로 밑) */}
+              <div className="chat-rooms-section">
+                <h2 className="chat-rooms-title">채팅방 목록</h2>
+                {chatRoomList.length === 0 ? (
+                  <p className="chat-rooms-empty">진행 중인 채팅이 없습니다.</p>
+                ) : (
+                  <ul className="chat-rooms-list">
+                    {chatRoomList.map((room) => (
+                      <li
+                        key={room.roomId ? `room_${room.roomId}` : room.postId}
+                        className="chat-room-item"
+                        onClick={() => setChatPost({ id: room.postId, title: room.title, author: room.author })}
+                      >
+                        <div className="chat-room-item-main">
+                          <div className="chat-room-item-title">{room.title}</div>
+                          {room.author && <div className="chat-room-item-author">↔ {room.author}</div>}
+                          {room.lastMessage && (
+                            <div className="chat-room-item-preview">
+                              {room.lastMessage.length > 30 ? room.lastMessage.slice(0, 30) + '…' : room.lastMessage}
+                            </div>
+                          )}
+                          {room.lastMessageAt && (
+                            <div className="chat-room-item-time">
+                              {new Date(room.lastMessageAt).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          className="chat-room-item-delete"
+                          title="채팅방 삭제"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (room.roomId) {
+                              deleteChatRoomFromList(room.roomId, () => setChatListVersion((v) => v + 1));
+                            } else {
+                              removePostChatFromList(room.postId, () => setChatListVersion((v) => v + 1));
+                            }
+                          }}
+                        >
+                          삭제
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </div>
 
@@ -425,8 +510,10 @@ const MyPage: React.FC = () => {
                             : '삭제됨'}
                         </span>
                       </div>
-                      <p className="my-post-date">{post.createdAt}</p>
-                      <p className="my-post-location">📍 {post.location}</p>
+                      <div className="my-post-footer">
+                        <p className="my-post-date">{formatPostDate(post.createdAt)}</p>
+                        <p className="my-post-location">📍 {post.location}</p>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -480,6 +567,15 @@ const MyPage: React.FC = () => {
         isOpen={isPostModalOpen}
         onClose={handleClosePostModal}
         onStatusUpdate={handleStatusUpdate}
+        onOpenChat={(post) => setChatPost({ id: post.id, title: post.title, author: post.author, userId: post.userId })}
+      />
+      <ChatRoomModal
+        post={chatPost}
+        isOpen={!!chatPost}
+        onClose={() => {
+          setChatPost(null);
+          queryClient.invalidateQueries({ queryKey: ['chat-rooms'] });
+        }}
       />
     </div>
   );

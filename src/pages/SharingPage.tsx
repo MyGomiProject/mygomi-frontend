@@ -5,6 +5,7 @@ import ParallaxBackground from '../components/ParallaxBackground';
 import Map from '../components/Map';
 import SharingPostList from '../components/SharingPostList';
 import SharingPostModal from '../components/SharingPostModal';
+import ChatRoomModal, { ChatPostInfo } from '../components/ChatRoomModal';
 import AllPostsModal from '../components/AllPostsModal';
 import './SharingPage.css';
 
@@ -26,7 +27,7 @@ const SharingPage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedPost, setSelectedPost] = useState<SharingPost | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [chatPost, setChatPost] = useState<ChatPostInfo | null>(null);
   const [isAllPostsModalOpen, setIsAllPostsModalOpen] = useState(false);
 
   const handleWriteClick = () => {
@@ -110,6 +111,12 @@ const SharingPage: React.FC = () => {
         post={selectedPost} 
         isOpen={isModalOpen} 
         onClose={handleCloseModal}
+        onOpenChat={(post) => setChatPost({ id: post.id, title: post.title, author: post.author, userId: post.userId })}
+      />
+      <ChatRoomModal
+        post={chatPost}
+        isOpen={!!chatPost}
+        onClose={() => setChatPost(null)}
       />
 
       <AllPostsModal

@@ -24,9 +24,10 @@ interface SharingPostModalProps {
   onClose: () => void;
   onViewDetail?: (post: SharingPost) => void;
   onStatusUpdate?: (postId: string, newStatus: 'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED') => void;
+  onOpenChat?: (post: SharingPost) => void;
 }
 
-const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClose, onViewDetail, onStatusUpdate }) => {
+const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClose, onViewDetail, onStatusUpdate, onOpenChat }) => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [currentStatus, setCurrentStatus] = useState<'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED' | undefined>(post?.status);
@@ -133,8 +134,9 @@ const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClo
   };
 
   const handleOpenChat = () => {
-    // 채팅 기능은 추후 구현
-    alert('채팅 기능은 준비 중입니다.');
+    if (!post) return;
+    onOpenChat?.(post);
+    onClose();
   };
 
   // 카테고리 한글 매핑
