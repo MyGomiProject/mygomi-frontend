@@ -95,7 +95,7 @@ const SharingPage: React.FC = () => {
                   ✏️ 글쓰기
                 </button>
               </div>
-              <SharingPostList onPostClick={handlePostClick} />
+              <SharingPostList onPostClick={handlePostClick} hideMyPosts />
               <button 
                 className="view-all-button"
                 onClick={() => setIsAllPostsModalOpen(true)}

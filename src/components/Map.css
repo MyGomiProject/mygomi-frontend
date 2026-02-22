@@ -143,6 +143,28 @@
   }
 }
 
+/* 본인 위치 마커 */
+.user-location-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.user-location-marker-container {
+  filter: drop-shadow(0 2px 8px rgba(33, 150, 243, 0.4));
+  animation: userMarkerPulse 2s ease-in-out infinite;
+}
+
+@keyframes userMarkerPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.9;
+  }
+}
+
 /* Leaflet 확대/축소 컨트롤 스타일 커스터마이징 */
 .leaflet-control-zoom {
   border: none !important;

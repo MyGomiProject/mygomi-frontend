@@ -1,12 +1,16 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { sharePostApi } from '../api/sharePost';
+import { addressApi } from '../api/address';
+import { useAuth } from '../contexts/AuthContext';
 import './Map.css';
 
-// 커스텀 마커 아이콘 생성 함수
+const DEFAULT_CENTER: [number, number] = [35.6762, 139.6503]; // 도쿄 기본 위치
+
+// 게시글 마커용 아이콘
 const createCustomIcon = () => {
   return L.divIcon({
     className: 'custom-marker',
@@ -30,6 +34,25 @@ const createCustomIcon = () => {
     iconSize: [48, 56],
     iconAnchor: [24, 56],
     popupAnchor: [0, -56],
+  });
+};
+
+// 본인 위치 마커용 아이콘 (파란색으로 구분)
+const createUserLocationIcon = () => {
+  return L.divIcon({
+    className: 'user-location-marker',
+    html: `
+      <div class="user-location-marker-container">
+        <svg width="40" height="47" viewBox="0 0 40 47" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 2C11.2 2 4 9.2 4 18C4 29 20 45 20 45C20 45 36 29 36 18C36 9.2 28.8 2 20 2Z" fill="#2196f3" stroke="#1976d2" stroke-width="1.5"/>
+          <circle cx="20" cy="18" r="8" fill="white" opacity="0.9"/>
+          <circle cx="20" cy="18" r="4" fill="#2196f3"/>
+        </svg>
+      </div>
+    `,
+    iconSize: [40, 47],
+    iconAnchor: [20, 47],
+    popupAnchor: [0, -47],
   });
 };
 
@@ -58,50 +81,80 @@ interface MapProps {
 // 지도가 완전히 렌더링되도록 하는 컴포넌트
 const MapResizer = () => {
   const map = useMap();
-  
+
   useEffect(() => {
-    // 지도가 준비되면 크기 재계산 (여러 번 호출하여 확실하게)
     const timers = [
       setTimeout(() => map.invalidateSize(), 100),
       setTimeout(() => map.invalidateSize(), 300),
       setTimeout(() => map.invalidateSize(), 500),
     ];
-    
-    // 윈도우 리사이즈 시에도 크기 재계산
-    const handleResize = () => {
-      map.invalidateSize();
-    };
+    const handleResize = () => map.invalidateSize();
     window.addEventListener('resize', handleResize);
-    
-    // ResizeObserver를 사용하여 부모 컨테이너 크기 변경 감지
     const container = map.getContainer().parentElement;
     let resizeObserver: ResizeObserver | null = null;
-    
     if (container && window.ResizeObserver) {
-      resizeObserver = new ResizeObserver(() => {
-        map.invalidateSize();
-      });
+      resizeObserver = new ResizeObserver(() => map.invalidateSize());
       resizeObserver.observe(container);
     }
-    
     return () => {
       timers.forEach(timer => clearTimeout(timer));
       window.removeEventListener('resize', handleResize);
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-      }
+      resizeObserver?.disconnect();
     };
   }, [map]);
-
   return null;
 };
 
-const Map: React.FC<MapProps> = ({ 
-  center = [35.6762, 139.6503], // 도쿄 기본 위치
-  zoom = 14,
+// 지도 중심을 사용자 위치(또는 prop)로 맞추는 컴포넌트
+const MapCenterUpdater: React.FC<{
+  center: [number, number];
+  zoom: number;
+}> = ({ center, zoom }) => {
+  const map = useMap();
+  const lat = center[0];
+  const lng = center[1];
+  useEffect(() => {
+    map.setView(center, zoom);
+  }, [map, center, zoom, lat, lng]);
+  return null;
+};
+
+const Map: React.FC<MapProps> = ({
+  center: propCenter,
+  zoom = 13,
   markers = [],
-  onMarkerClick
+  onMarkerClick,
 }) => {
+  const { token, user } = useAuth();
+
+  // 로그인 시 대표 주소 조회 (지도 중심·본인 위치 마커용)
+  const { data: addresses } = useQuery({
+    queryKey: ['user-addresses'],
+    queryFn: () => addressApi.getAddresses(),
+    enabled: !!token,
+  });
+
+  // 지도 초기 중심: prop > 대표 주소 좌표 > 도쿄
+  const userCenter = useMemo((): [number, number] => {
+    if (propCenter && propCenter[0] && propCenter[1]) return propCenter;
+    const list = Array.isArray(addresses) ? addresses : [];
+    const primary = list.find((a) => a.isPrimary) ?? list[0];
+    if (primary?.lat != null && primary?.lng != null && primary.lat !== 0 && primary.lng !== 0) {
+      return [primary.lat, primary.lng];
+    }
+    return DEFAULT_CENTER;
+  }, [propCenter, addresses]);
+
+  // 본인 위치 마커용 좌표 (대표 주소에 유효한 lat/lng 있을 때만)
+  const userPosition = useMemo((): [number, number] | null => {
+    const list = Array.isArray(addresses) ? addresses : [];
+    const primary = list.find((a) => a.isPrimary) ?? list[0];
+    if (primary?.lat != null && primary?.lng != null && primary.lat !== 0 && primary.lng !== 0) {
+      return [primary.lat, primary.lng];
+    }
+    return null;
+  }, [addresses]);
+
   // 5km 이내 주변 게시글 조회
   const { data: nearbyPostsData } = useQuery({
     queryKey: ['nearby-posts-map'],
@@ -121,6 +174,10 @@ const Map: React.FC<MapProps> = ({
     
     return postsArray
       .filter((post) => {
+        // 본인 게시글은 지도 마커에서 제외
+        if (user?.id != null && post.userId != null && post.userId === user.id) {
+          return false;
+        }
         // 상태 필터링: COMPLETED(나눔 완료)와 DELETED(삭제됨)는 제외, OPEN(나눔 대기)과 RESERVED(예약됨)는 표시
         if (post.status === 'COMPLETED' || post.status === 'DELETED') {
           return false;
@@ -157,71 +214,28 @@ const Map: React.FC<MapProps> = ({
       });
   })();
 
-  // markers prop이 있으면 우선 사용, 없으면 API 데이터 사용, 둘 다 없으면 기본 마커 사용
-  const defaultMarkers: MapMarker[] = markers.length > 0 ? markers : apiMarkers.length > 0 ? apiMarkers : [
-    {
-      id: '1',
-      position: [35.6762, 139.6503] as [number, number],
-      title: '전자레인지 나눔합니다',
-      description: '사용 잘하는 전자레인지입니다. 깨끗하게 사용했어요.',
-      imageUrl: 'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?w=200&h=200&fit=crop',
-      imageUrls: [
-        'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?w=600&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1574269909862-7e1d70bb8078?w=600&h=600&fit=crop',
-      ],
-      category: 'ELECTRONICS',
-      status: 'OPEN',
-      author: '지윤',
-      location: '신주쿠구',
-      createdAt: '2024-01-29',
-    },
-    {
-      id: '2',
-      position: [35.6800, 139.6500] as [number, number],
-      title: '책장 나눔합니다',
-      description: '작은 책장 나눔합니다. 상태 양호합니다.',
-      imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=200&h=200&fit=crop',
-      imageUrls: [
-        'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&h=600&fit=crop',
-      ],
-      category: 'FURNITURE',
-      status: 'RESERVED',
-      author: '신규구',
-      location: '시부야구',
-      createdAt: '2024-01-28',
-    },
-    {
-      id: '3',
-      position: [35.6720, 139.6520] as [number, number],
-      title: '자전거 나눔합니다',
-      description: '자전거 나눔합니다. 잘 타고 다녔어요.',
-      imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=200&fit=crop',
-      imageUrls: [
-        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=600&fit=crop',
-        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=600&fit=crop',
-      ],
-      category: 'ETC',
-      status: 'COMPLETED',
-      author: '지험',
-      location: '미나토구',
-      createdAt: '2024-01-27',
-    },
-  ];
+  // markers prop이 있으면 우선 사용, 없으면 API 데이터만 사용 (더미 없음)
+  const defaultMarkers: MapMarker[] = markers.length > 0 ? markers : apiMarkers;
 
   return (
     <div className="map-container">
       <MapContainer
-        center={center}
+        center={userCenter}
         zoom={zoom}
         scrollWheelZoom={true}
         className="leaflet-map"
       >
         <MapResizer />
+        <MapCenterUpdater center={userCenter} zoom={zoom} />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        {userPosition != null && (
+          <Marker position={userPosition} icon={createUserLocationIcon()}>
+            <Popup>내 위치</Popup>
+          </Marker>
+        )}
         {defaultMarkers.map((marker) => (
           <Marker key={marker.id} position={marker.position} icon={createCustomIcon()}>
             <Popup>
