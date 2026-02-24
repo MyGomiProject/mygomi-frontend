@@ -61,10 +61,20 @@
   gap: 2rem;
 }
 
+.profile-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .profile-header {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .profile-name {
@@ -88,19 +98,21 @@
 
 .profile-actions {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  width: 100%;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .action-button {
   flex: 1;
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 1.5rem;
   background: #f5f5f5;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   color: #666;
   font-size: 0.9rem;
+  white-space: nowrap;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -271,6 +283,111 @@
   box-shadow: 0 4px 12px rgba(102, 187, 106, 0.3);
 }
 
+/* 채팅방 목록 (개인정보 바로 밑, 왼쪽 컬럼 안) */
+.chat-rooms-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
+  min-height: 0;
+}
+
+.chat-rooms-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #2c2c2c;
+  margin: 0 0 0.75rem 0;
+}
+
+.chat-rooms-empty {
+  margin: 0;
+  color: #999;
+  font-size: 0.9rem;
+  padding: 0.75rem 0;
+}
+
+.chat-rooms-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.chat-room-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 1rem 1.25rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  border: 1px solid transparent;
+}
+
+.chat-room-item:hover {
+  background: #e8f5e9;
+  box-shadow: 0 2px 8px rgba(102, 187, 106, 0.15);
+}
+
+.chat-room-item-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+
+.chat-room-item-delete {
+  flex-shrink: 0;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.8rem;
+  color: #c62828;
+  background: transparent;
+  border: 1px solid rgba(198, 40, 40, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.chat-room-item-delete:hover {
+  background: rgba(198, 40, 40, 0.08);
+  color: #b71c1c;
+}
+
+.chat-room-item-title {
+  font-weight: 600;
+  color: #2c2c2c;
+  font-size: 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-room-item-author {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.chat-room-item-preview {
+  font-size: 0.9rem;
+  color: #666;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-room-item-time {
+  font-size: 0.8rem;
+  color: #999;
+  margin-left: auto;
+}
+
 /* 나눔 게시물 섹션 */
 .my-posts-section {
   margin-top: 3rem;
@@ -297,6 +414,8 @@
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   cursor: pointer;
   transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
 }
 
 .my-post-card:hover {
@@ -319,6 +438,10 @@
 
 .my-post-content {
   padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
 .my-post-header {
@@ -367,15 +490,21 @@
   color: #f44336;
 }
 
+.my-post-footer {
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
 .my-post-date {
   font-size: 0.9rem;
   color: #666;
-  margin-bottom: 0.5rem;
+  margin: 0 0 0.25rem 0;
 }
 
 .my-post-location {
   font-size: 0.85rem;
   color: #999;
+  margin: 0;
 }
 
 .no-posts {
