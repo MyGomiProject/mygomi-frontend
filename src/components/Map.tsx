@@ -243,7 +243,11 @@ const Map: React.FC<MapProps> = ({
         />
         {userPosition != null && (
           <Marker position={userPosition} icon={createUserLocationIcon()}>
-            <Popup>내 위치</Popup>
+            <Popup className="user-location-popup-wrapper">
+              <div className="map-popup user-location-popup">
+                <h3 className="map-popup-title">내 위치</h3>
+              </div>
+            </Popup>
           </Marker>
         )}
         {defaultMarkers.map((marker) => (

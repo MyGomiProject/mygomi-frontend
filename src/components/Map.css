@@ -154,6 +154,30 @@
   animation: userMarkerPulse 2s ease-in-out infinite;
 }
 
+.user-location-popup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  min-width: auto !important;
+}
+
+.user-location-popup .map-popup-title {
+  margin: 0; /* 제목 아래 기본 여백 제거 -> 완벽한 세로 중앙 정렬 */
+  padding: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #2c2c2c;
+  white-space: nowrap; /* 글자가 줄바꿈되지 않게 고정 */
+}
+
+.user-location-popup-wrapper .leaflet-popup-content {
+  min-width: 100px !important; /* 기존 140px 무시, 글자 길이에 맞춰 줄어듦 */
+  max-width: fit-content !important;
+  width: auto !important;
+}
+
+
 @keyframes userMarkerPulse {
   0%, 100% {
     transform: scale(1);
