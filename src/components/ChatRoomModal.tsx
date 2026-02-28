@@ -137,7 +137,7 @@ export function buildChatRoomListFromApi(
           const meta = JSON.parse(metaRaw);
           if (meta.postId) postId = String(meta.postId);
           if (meta.title) title = meta.title;
-          if (meta.author !== undefined) author = meta.author;
+          // author는 항상 API opponentNickname(채팅 상대) 사용. meta.author는 게시글 작성자라 목록에서는 쓰지 않음
         }
       } catch {}
       if (!postId) postId = `room_${room.roomId}`;
@@ -236,6 +236,17 @@ const ChatRoomModal: React.FC<ChatRoomModalProps> = ({ post, isOpen, onClose }) 
     retry: false,
   });
 
+  // 내 채팅방 목록에서 현재 방의 상대방 닉네임 조회 (헤더에 "↔ 상대방" 표시용)
+  const { data: apiRooms } = useQuery({
+    queryKey: ['chat-rooms'],
+    queryFn: () => chatApi.getRooms(),
+    enabled: hasRoomId && roomId != null && isOpen,
+  });
+  const opponentFromApi =
+    hasRoomId && roomId != null
+      ? apiRooms?.find((r) => r.roomId === roomId)?.opponentNickname
+      : undefined;
+
   // 과거 메시지 (소켓 채팅 모드일 때만)
   const { data: apiMessages } = useQuery({
     queryKey: ['chat-messages', roomId],
@@ -321,28 +332,69 @@ const ChatRoomModal: React.FC<ChatRoomModalProps> = ({ post, isOpen, onClose }) 
     }
   }, [post?.id, post?.title, post?.author, isOpen, hasRoomId]);
 
-  // 예약 상태 조회 (실패해도 예약 버튼은 보이도록 — 나눔 받는 사람·나눔 하는 사람 둘 다 표시)
+  const refetchPostListQueries = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['my-share-posts'] });
+    queryClient.invalidateQueries({ queryKey: ['nearby-posts-map'] });
+    queryClient.invalidateQueries({ queryKey: ['nearby-posts'] });
+    queryClient.invalidateQueries({ queryKey: ['share-posts'] });
+    queryClient.invalidateQueries({ queryKey: ['all-nearby-posts'] });
+    queryClient.refetchQueries({ queryKey: ['my-share-posts'] });
+    queryClient.refetchQueries({ queryKey: ['nearby-posts-map'] });
+    queryClient.refetchQueries({ queryKey: ['nearby-posts'] });
+    queryClient.refetchQueries({ queryKey: ['share-posts'] });
+    queryClient.refetchQueries({ queryKey: ['all-nearby-posts'] });
+  }, [queryClient]);
+
+  // 예약 상태 조회: GET .../status?roomId= (진입 시 + 폴링). 대기 중일 때 2초, 확정 시 폴링 중단
   const {
     data: reservationStatus,
     isSuccess: reservationApiReady,
     isError: reservationApiError,
+    refetch: refetchReservationStatus,
+    isFetching: reservationStatusFetching,
   } = useQuery({
-    queryKey: ['reservation-status', post?.id],
-    queryFn: () => reservationApi.getStatus(post!.id),
-    enabled: !!post?.id && isOpen,
+    queryKey: ['reservation-status', post?.id, roomId],
+    queryFn: () => reservationApi.getStatus(post!.id, roomId!),
+    enabled: !!post?.id && roomId != null && isOpen,
     retry: false,
+    refetchOnWindowFocus: true,
+    refetchInterval: (query) => {
+      const d = query.state.data as ReservationStatusResponse | undefined;
+      if (d?.postStatus === 'RESERVED' || d?.bothAgreed === true) return false;
+      if (d?.myAgreed === true) return 2000;
+      return 3000;
+    },
+    refetchIntervalInBackground: true,
   });
 
-  const agreeMutation = useMutation({
-    mutationFn: (postId: string) => reservationApi.agree(postId),
-    onSuccess: (data: ReservationStatusResponse, postId) => {
-      queryClient.invalidateQueries({ queryKey: ['reservation-status', postId] });
-      queryClient.invalidateQueries({ queryKey: ['my-share-posts'] });
-      queryClient.invalidateQueries({ queryKey: ['nearby-posts-map'] });
-      queryClient.invalidateQueries({ queryKey: ['nearby-posts'] });
-      if (data.postStatus === 'RESERVED') {
-        queryClient.invalidateQueries({ queryKey: ['share-posts'] });
+  // 예약 확정: 2-2(방 단위 동일 응답)·2-3(postStatus RESERVED) 기준. (myAgreed&&otherAgreed)는 보완용
+  const isReservationConfirmed =
+    reservationStatus?.postStatus === 'RESERVED' ||
+    reservationStatus?.bothAgreed === true ||
+    (reservationStatus?.myAgreed === true && reservationStatus?.otherAgreed === true);
+
+  // 폴링으로 예약 확정 감지됐을 때 게시글 목록 즉시 갱신 (먼저 예약한 사람 쪽에서도 reserved 반영)
+  const prevBothAgreedRef = useRef(false);
+  useEffect(() => {
+    if (isReservationConfirmed) {
+      if (!prevBothAgreedRef.current) {
+        prevBothAgreedRef.current = true;
+        refetchPostListQueries();
       }
+    } else {
+      prevBothAgreedRef.current = false;
+    }
+  }, [isReservationConfirmed, refetchPostListQueries]);
+
+  // 예약 동의: POST .../agree?roomId= (예약하기 버튼 클릭 시). md/나눔_예약_API_수정요청_백엔드.md
+  const agreeMutation = useMutation({
+    mutationFn: ({ postId, roomId: rId }: { postId: string; roomId: number }) =>
+      reservationApi.agree(postId, rId),
+    onSuccess: (data: ReservationStatusResponse | undefined, variables) => {
+      if (variables) {
+        queryClient.invalidateQueries({ queryKey: ['reservation-status', variables.postId, variables.roomId] });
+      }
+      refetchPostListQueries();
     },
     onError: (err: unknown) => {
       console.error('예약 동의 API 실패:', err);
@@ -394,8 +446,8 @@ const ChatRoomModal: React.FC<ChatRoomModalProps> = ({ post, isOpen, onClose }) 
   };
 
   const handleReservationAgree = () => {
-    if (!post || agreeMutation.isPending) return;
-    agreeMutation.mutate(post.id);
+    if (!post || roomId == null || agreeMutation.isPending) return;
+    agreeMutation.mutate({ postId: post.id, roomId });
   };
 
   // 메시지 항상 시간순 정렬 (과거 → 최신) — 자기 메시지가 위로 몰리는 현상 방지
@@ -406,6 +458,15 @@ const ChatRoomModal: React.FC<ChatRoomModalProps> = ({ post, isOpen, onClose }) 
       ),
     [messages]
   );
+
+  // 상단 "↔ 이름" = 채팅 버블에 나오는 상대와 동일 (버블과 같은 sortedMessages에서 추출)
+  const opponentFromMessages = useMemo(() => {
+    const otherMsg = sortedMessages.find((m) => m.sender === 'other' && m.senderNickname?.trim());
+    return otherMsg?.senderNickname?.trim() || undefined;
+  }, [sortedMessages]);
+  const headerDisplayName = hasRoomId
+    ? (opponentFromMessages ?? opponentFromApi ?? '상대방')
+    : post?.author;
 
   const formatTime = (iso: string) => {
     const d = new Date(iso);
@@ -429,7 +490,9 @@ const ChatRoomModal: React.FC<ChatRoomModalProps> = ({ post, isOpen, onClose }) 
           <div className="chat-room-title-wrap">
             <h2 className="chat-room-title">나눔 채팅</h2>
             <p className="chat-room-subtitle">{post.title}</p>
-            {post.author && <span className="chat-room-with">↔ {post.author}</span>}
+            {headerDisplayName && (
+              <span className="chat-room-with">↔ {headerDisplayName}</span>
+            )}
             {hasRoomId && (
               <span className={`chat-room-connection ${connected ? 'connected' : 'connecting'}`}>
                 {connected ? '● 연결됨' : '○ 연결 중...'}
@@ -466,12 +529,25 @@ const ChatRoomModal: React.FC<ChatRoomModalProps> = ({ post, isOpen, onClose }) 
           <div className="chat-room-reservation">
             {reservationApiReady && reservationStatus ? (
               <>
-                {reservationStatus.postStatus === 'RESERVED' || reservationStatus.bothAgreed ? (
+                {isReservationConfirmed ? (
                   <p className="chat-room-reservation-status confirmed">예약 확정됨</p>
                 ) : reservationStatus.postStatus !== 'OPEN' ? (
                   <p className="chat-room-reservation-status">예약할 수 없는 상태입니다.</p>
                 ) : reservationStatus.myAgreed ? (
-                  <p className="chat-room-reservation-status waiting">예약 요청함 · 상대방 수락 대기 중</p>
+                  <p className="chat-room-reservation-status waiting">
+                    예약 요청함 · 상대방 수락 대기 중
+                    <button
+                      type="button"
+                      className="chat-room-reservation-refresh"
+                      onClick={() => {
+                        queryClient.invalidateQueries({ queryKey: ['reservation-status', post?.id, roomId] });
+                        refetchReservationStatus();
+                      }}
+                      disabled={reservationStatusFetching}
+                    >
+                      {reservationStatusFetching ? '확인 중...' : '새로고침'}
+                    </button>
+                  </p>
                 ) : (
                   <>
                     {reservationStatus.otherAgreed && (
@@ -490,7 +566,7 @@ const ChatRoomModal: React.FC<ChatRoomModalProps> = ({ post, isOpen, onClose }) 
               </>
             ) : reservationApiError ? (
               <>
-                <p className="chat-room-reservation-status hint">예약하기를 눌러 동의할 수 있습니다.</p>
+                <p className="chat-room-reservation-status hint">예약 상태를 불러오지 못했습니다. 예약하기를 눌러 동의할 수 있습니다.</p>
                 <button
                   type="button"
                   className="chat-room-reservation-button"
