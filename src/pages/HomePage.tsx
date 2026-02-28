@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // 1 - 파일 구조에 맞춰 import 경로 확인
@@ -8,6 +8,7 @@ import Map from '../components/Map';
 import Loading from '../components/Loading';
 import ErrorDisplay from '../components/ErrorDisplay';
 import SearchBox from '../components/SearchBox';
+import ToastNotification from '../components/ToastNotification';
 
 // 2 - 커스텀 훅 및 상수 import 
 import { useWeeklyCalendar } from '../hooks/useCalendar';
@@ -84,18 +85,55 @@ const [currentDate, setCurrentDate] = useState(new Date());
   });
 
   // 5. 쓰레기 라벨 설정
-  const wasteTypeLabels: Record<string, { label: string; emoji: string; class: string }> = {
+  const wasteTypeLabels = useMemo<Record<string, { label: string; emoji: string; class: string }>>(() => ({
     BURNABLE: { label: '가연성', emoji: '🔥', class: 'burnable' },
     NON_BURNABLE: { label: '불연성', emoji: '🗑️', class: 'non-burnable' },
     PLASTIC: { label: '플라스틱', emoji: '♻️', class: 'plastic' },
     CAN_BOTTLE: { label: '병/캔', emoji: '🍾', class: 'can-bottle' },
     PAPER: { label: '종이', emoji: '📄', class: 'paper' },
-  };
+  }), []);
+
+  // 6. 오늘 날짜의 분리수거 항목 확인
+  const todayStr = formatDate(new Date());
+  const todayEvents = useMemo(() => {
+    if (!Array.isArray(events)) return [];
+    return events.filter(e => e.start === todayStr);
+  }, [events, todayStr]);
+
+  // 7. 알림 표시: 로그인 시 오늘 분리수거가 있으면 계속 표시 (닫으면 세션 동안만 숨김)
+  const [notificationDismissed, setNotificationDismissed] = useState(false);
+  const shouldShowNotification =
+    Boolean(user && !isLoading && Array.isArray(events) && todayEvents.length > 0) && !notificationDismissed;
+
+  // 9. 알림 메시지 생성
+  const notificationMessage = useMemo(() => {
+    if (todayEvents.length === 0) return '';
+    
+    const wasteTypes = todayEvents
+      .map(ev => {
+        const type = ev.extendedProps?.wasteType || '';
+        const info = wasteTypeLabels[type];
+        return info ? `${info.emoji} ${info.label}` : null;
+      })
+      .filter(Boolean)
+      .join(', ');
+
+    return `오늘은 ${wasteTypes} 분리수거 날입니다!`;
+  }, [todayEvents, wasteTypeLabels]);
 
   return (
     <div className="home-page">
       <ParallaxBackground />
       <Header />
+      {shouldShowNotification && notificationMessage && (
+        <ToastNotification
+          message={notificationMessage}
+          type="info"
+          duration={8000}
+          alignWithMainContent
+          onClose={() => setNotificationDismissed(true)}
+        />
+      )}
       <main className="main-content">
         <section className="hero-section">
           <div className="hero-content">
