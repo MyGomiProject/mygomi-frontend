@@ -228,6 +228,30 @@
 
 .chat-room-reservation-status.waiting {
   color: #ed6c02;
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chat-room-reservation-refresh {
+  margin-left: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.8rem;
+  color: #1976d2;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.chat-room-reservation-refresh:hover:not(:disabled) {
+  color: #0d47a1;
+}
+
+.chat-room-reservation-refresh:disabled {
+  opacity: 0.7;
+  cursor: wait;
 }
 
 .chat-room-reservation-status.hint {

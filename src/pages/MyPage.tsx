@@ -354,7 +354,7 @@ const MyPage: React.FC = () => {
               </div>
               {/* 채팅방 목록 (개인정보 바로 밑) */}
               <div className="chat-rooms-section">
-                <h2 className="chat-rooms-title">채팅방 목록</h2>
+                <h2 className="chat-rooms-title">채팅방 목록 💬</h2>
                 {chatRoomList.length === 0 ? (
                   <p className="chat-rooms-empty">진행 중인 채팅이 없습니다.</p>
                 ) : (
@@ -404,7 +404,7 @@ const MyPage: React.FC = () => {
             {/* 오른쪽: 주소 관리 */}
             <div className="address-section">
               <div className="address-header">
-                <h3 className="address-title">내 주소</h3>
+                <h3 className="address-title">내 주소 🏠</h3>
                 <button className="add-address-button" onClick={handleAddAddress}>
                   주소 추가
                 </button>
@@ -476,7 +476,7 @@ const MyPage: React.FC = () => {
 
           {/* 내가 올린 나눔 게시물 섹션 */}
           <div className="my-posts-section">
-            <h2 className="my-posts-title">내가 올린 나눔 게시물</h2>
+            <h2 className="my-posts-title">내가 올린 나눔 게시물 📝</h2>
             {myPostsLoading ? (
               <Loading message="게시글을 불러오는 중..." />
             ) : myPostsError ? (
