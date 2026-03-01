@@ -78,6 +78,167 @@
   gap: 1rem;
 }
 
+/* 채팅 알림 벨 */
+.header-notification-wrap {
+  position: relative;
+  margin-left: -0.25rem;
+  margin-right: 0.5rem;
+}
+
+.header-notification-btn {
+  position: relative;
+  background: none;
+  border: none;
+  padding: 0.4rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 1.35rem;
+  line-height: 1;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.header-notification-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.header-notification-icon-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.header-notification-icon {
+  display: block;
+}
+
+.header-notification-badge {
+  position: absolute;
+  left: calc(100% - 6px);
+  top: 20%;
+  transform: translateY(-50%);
+  margin-left: 0;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background-color: #e53935;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-notification-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 320px;
+  max-height: 380px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.header-notification-dropdown-title {
+  padding: 1rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #2c2c2c;
+  border-bottom: 1px solid #eee;
+  flex-shrink: 0;
+}
+
+.header-notification-empty {
+  padding: 2rem 1.25rem;
+  text-align: center;
+  color: #999;
+  font-size: 0.9rem;
+}
+
+.header-notification-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  max-height: 280px;
+}
+
+.header-notification-item {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.header-notification-item:last-child {
+  border-bottom: none;
+}
+
+.header-notification-item-btn {
+  width: 100%;
+  padding: 0.9rem 1.25rem;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  transition: background-color 0.2s;
+}
+
+.header-notification-item-btn:hover {
+  background-color: #f5f5f5;
+}
+
+.header-notification-item-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2c2c2c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-notification-item-author {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.header-notification-item-preview {
+  font-size: 0.8rem;
+  color: #999;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-notification-footer {
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid #eee;
+  flex-shrink: 0;
+}
+
+.header-notification-link {
+  display: block;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #66bb6a;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.header-notification-link:hover {
+  text-decoration: underline;
+}
+
 .user-nickname {
   background-color: #ffffff;
   color: #66bb6a;

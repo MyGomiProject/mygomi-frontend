@@ -82,6 +82,37 @@
 
 ---
 
+### 2-4. 채팅방 목록 API에 sharePostId 포함 (목록에서 연 경우 예약 연동)
+
+**현상**
+- 사용자가 **채팅 목록**(헤더 벨·채팅 목록 페이지)에서 채팅방을 열면, 해당 채팅방이 **어느 나눔 글**에 대한 방인지 알 수 없음.
+- 예약 상태 조회는 `GET /api/share-posts/{postId}/reservation/status?roomId={roomId}` 형태라 **postId(나눔 글 ID)**가 필요한데, 목록에서만 열면 postId를 모름.
+- 그래서 프론트에서는 "예약은 해당 나눔 글에서 채팅을 열면 이용할 수 있습니다." 문구만 보여주고, 예약하기/예약 확정 상태를 표시하지 못함.
+
+**요청**
+- **`GET /api/chat/rooms`** (채팅방 목록 조회) 응답의 **각 채팅방(room) 객체**에 **`sharePostId`** 필드를 추가해 주세요.
+  - `sharePostId`: 해당 채팅방이 연결된 **나눔 글(share post)의 ID** (number)
+  - 같은 방을 나눔 글이 아닌 경로로 만든 경우 등 예외가 있으면 `null` 또는 필드 생략 가능
+- 프론트에서는 이 값을 사용해 **목록에서 채팅방을 연 경우에도**  
+  `GET /api/share-posts/{sharePostId}/reservation/status?roomId={roomId}` 를 호출해 예약 상태를 조회·표시할 수 있습니다.
+
+**예시 (응답 구조)**  
+기존 rooms 배열의 각 항목에 `sharePostId`만 추가되면 됩니다.
+
+```json
+{
+  "rooms": [
+    {
+      "roomId": 14,
+      "sharePostId": 19,
+      ...
+    }
+  ]
+}
+```
+
+---
+
 ## 3. 정리 (체크리스트)
 
 | 구분 | 내용 | 확인 |
@@ -90,6 +121,7 @@
 | 권한 | roomId 기준 채팅방 참여자 두 명 모두 status/agree 호출 허용 (403 제거) | □ |
 | 상태 조회 | 같은 roomId면 두 참여자 모두 동일한 otherAgreed, bothAgreed 반환 | □ |
 | 게시글 상태 | 두 명 동의 시 해당 post status를 RESERVED로 변경하고, API 응답에도 반영 | □ |
+| **목록 연동** | GET /api/chat/rooms 응답 각 room에 sharePostId(나눔 글 ID) 포함 (2-4) | □ |
 
 ---
 

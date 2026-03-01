@@ -1,11 +1,60 @@
-import React from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
+import { chatApi } from '../api/chat';
+import {
+  buildChatRoomListFromApi,
+  getSeenNotificationRoomIds,
+  markNotificationRoomSeen,
+} from './ChatRoomModal';
+import BellIcon from './BellIcon';
 import './Header.css';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const { user, token, logout } = useAuth();
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [seenNotificationRoomIds, setSeenNotificationRoomIds] = useState<number[]>(() =>
+    getSeenNotificationRoomIds()
+  );
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const { data: apiRooms } = useQuery({
+    queryKey: ['chat-rooms'],
+    queryFn: () => chatApi.getRooms(),
+    enabled: !!token,
+  });
+
+  const chatRoomList = useMemo(() => {
+    if (!apiRooms || !Array.isArray(apiRooms)) return [];
+    return buildChatRoomListFromApi(apiRooms);
+  }, [apiRooms]);
+
+  const unreadChatRoomList = useMemo(
+    () => chatRoomList.filter((room) => !seenNotificationRoomIds.includes(room.roomId)),
+    [chatRoomList, seenNotificationRoomIds]
+  );
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setNotificationOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const handleChatNotification = (e: Event) => {
+      const { roomId } = (e as CustomEvent<{ roomId: number }>).detail ?? {};
+      if (typeof roomId !== 'number') return;
+      setSeenNotificationRoomIds((prev) => prev.filter((id) => id !== roomId));
+    };
+    window.addEventListener('chat-notification-received', handleChatNotification);
+    return () => window.removeEventListener('chat-notification-received', handleChatNotification);
+  }, []);
 
   const handleLoginClick = () => {
     navigate('/login');
@@ -14,6 +63,17 @@ const Header: React.FC = () => {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  const handleNotificationToggle = () => {
+    setNotificationOpen((prev) => !prev);
+  };
+
+  const handleChatRoomClick = (room: { roomId: number; postId: string; title: string; author?: string }) => {
+    markNotificationRoomSeen(room.roomId);
+    setSeenNotificationRoomIds((prev) => (prev.includes(room.roomId) ? prev : [...prev, room.roomId]));
+    setNotificationOpen(false);
+    navigate('/mypage', { state: { openChat: { id: room.postId, title: room.title, author: room.author } } });
   };
 
   // 닉네임이 있으면 닉네임, 없으면 이메일 앞부분 표시
@@ -35,6 +95,57 @@ const Header: React.FC = () => {
           <Link to="/mypage" className="nav-link">마이페이지</Link>
           {token ? (
             <div className="user-menu">
+              <div className="header-notification-wrap" ref={dropdownRef}>
+                <button
+                  type="button"
+                  className="header-notification-btn"
+                  onClick={handleNotificationToggle}
+                  aria-label="채팅 알림"
+                  title="채팅 알림"
+                >
+                  <span className="header-notification-icon-wrap">
+                    <BellIcon className="header-notification-icon" size={22} />
+                    {unreadChatRoomList.length > 0 && (
+                      <span className="header-notification-badge">{unreadChatRoomList.length}</span>
+                    )}
+                  </span>
+                </button>
+                {notificationOpen && (
+                  <div className="header-notification-dropdown">
+                    <div className="header-notification-dropdown-title">채팅 알림</div>
+                    {unreadChatRoomList.length === 0 ? (
+                      <div className="header-notification-empty">진행 중인 채팅이 없습니다.</div>
+                    ) : (
+                      <ul className="header-notification-list">
+                        {unreadChatRoomList.map((room) => (
+                          <li key={room.roomId} className="header-notification-item">
+                            <button
+                              type="button"
+                              className="header-notification-item-btn"
+                              onClick={() => handleChatRoomClick(room)}
+                            >
+                              <span className="header-notification-item-title">{room.title}</span>
+                              {room.author && (
+                                <span className="header-notification-item-author">↔ {room.author}</span>
+                              )}
+                              {room.lastMessage && (
+                                <span className="header-notification-item-preview">
+                                  {room.lastMessage.length > 25 ? room.lastMessage.slice(0, 25) + '…' : room.lastMessage}
+                                </span>
+                              )}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <div className="header-notification-footer">
+                      <Link to="/mypage" className="header-notification-link" onClick={() => setNotificationOpen(false)}>
+                        마이페이지에서 채팅 보기
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
               <span className="user-nickname">{displayName}</span>
               <button className="logout-button" onClick={handleLogout}>
                 로그아웃

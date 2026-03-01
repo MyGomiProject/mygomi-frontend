@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { addressApi } from '../api/address';
@@ -39,6 +39,7 @@ interface SharingPost {
 
 const MyPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { token } = useAuth();
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
@@ -73,6 +74,15 @@ const MyPage: React.FC = () => {
       navigate('/login', { replace: true });
     }
   }, [token, navigate]);
+
+  // 헤더 알림에서 "채팅 보기"로 진입 시 해당 채팅방 모달 열기
+  useEffect(() => {
+    const openChat = (location.state as { openChat?: ChatPostInfo })?.openChat;
+    if (openChat && openChat.id && openChat.title) {
+      setChatPost(openChat);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, location.pathname, navigate]);
 
   // 사용자 정보 조회
   const { data: userInfo, isLoading: userLoading, error: userError } = useQuery({
