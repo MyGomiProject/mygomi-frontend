@@ -11,6 +11,7 @@ import IntegratedSearchPage from './pages/IntegratedSearchPage';
 import SharePostCreatePage from './pages/SharePostCreatePage';
 import TestPage from './pages/TestPage';
 import { AuthProvider } from './contexts/AuthContext';
+import ChatNotificationListener from './components/ChatNotificationListener';
 import './App.css';
 
 const queryClient = new QueryClient();
@@ -21,6 +22,7 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
           <div className="App">
+            <ChatNotificationListener />
             <Routes>
               {/* 팀원의 기본 페이지 구조를 따릅니다 */}
               <Route path="/" element={<HomePage />} />

@@ -30,6 +30,8 @@ const CHAT_ROOM_MESSAGES_PREFIX = 'chat_room_messages_';
 export const CHAT_ROOM_META_PREFIX = 'chat_room_meta_';
 /** 삭제한 채팅방 roomId 목록 (로컬에서만 숨김) */
 const CHAT_DELETED_ROOM_IDS_KEY = 'chat_deleted_room_ids';
+/** 헤더 알림에서 '확인함'으로 표시한 roomId 목록 (배지/목록에서 제외) */
+export const CHAT_SEEN_NOTIFICATION_ROOM_IDS_KEY = 'chat_seen_notification_room_ids';
 
 function loadRoomMessagesFromStorage(roomId: number): ChatMessage[] {
   try {
@@ -108,6 +110,39 @@ export function deleteChatRoomFromList(roomId: number, onListUpdated?: () => voi
   }
 }
 
+export function getSeenNotificationRoomIds(): number[] {
+  try {
+    const raw = localStorage.getItem(CHAT_SEEN_NOTIFICATION_ROOM_IDS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export function markNotificationRoomSeen(roomId: number, onUpdated?: () => void): void {
+  try {
+    const ids = getSeenNotificationRoomIds();
+    if (ids.includes(roomId)) return;
+    localStorage.setItem(CHAT_SEEN_NOTIFICATION_ROOM_IDS_KEY, JSON.stringify([...ids, roomId]));
+    onUpdated?.();
+  } catch (e) {
+    console.warn('markNotificationRoomSeen failed', e);
+  }
+}
+
+/** 새 메시지 도착 시 해당 방을 '확인 안 함'으로 돌려 헤더 벨 알림에 다시 표시 */
+export function clearNotificationRoomSeen(roomId: number, onUpdated?: () => void): void {
+  try {
+    const ids = getSeenNotificationRoomIds().filter((id) => id !== roomId);
+    localStorage.setItem(CHAT_SEEN_NOTIFICATION_ROOM_IDS_KEY, JSON.stringify(ids));
+    onUpdated?.();
+  } catch (e) {
+    console.warn('clearNotificationRoomSeen failed', e);
+  }
+}
+
 /** post 기반 로컬 채팅만 삭제 (목록에서 제거) */
 export function removePostChatFromList(postId: string, onListUpdated?: () => void): void {
   try {
@@ -121,7 +156,7 @@ export function removePostChatFromList(postId: string, onListUpdated?: () => voi
 
 /** API getRooms() 결과 + 로컬 메타/메시지로 목록 아이템 생성 (삭제한 방 제외) */
 export function buildChatRoomListFromApi(
-  rooms: { roomId: number; postTitle: string; opponentNickname: string }[]
+  rooms: { roomId: number; postTitle: string; opponentNickname: string; sharePostId?: number }[]
 ): ChatRoomListItem[] {
   const deletedSet = new Set(getDeletedRoomIds());
   const list: ChatRoomListItem[] = [];
@@ -140,6 +175,7 @@ export function buildChatRoomListFromApi(
           // author는 항상 API opponentNickname(채팅 상대) 사용. meta.author는 게시글 작성자라 목록에서는 쓰지 않음
         }
       } catch {}
+      if (!postId && room.sharePostId != null) postId = String(room.sharePostId);
       if (!postId) postId = `room_${room.roomId}`;
       const roomMessages = loadRoomMessagesFromStorage(room.roomId);
       const lastMsg = roomMessages.length > 0 ? roomMessages[roomMessages.length - 1] : null;
@@ -227,14 +263,25 @@ const ChatRoomModal: React.FC<ChatRoomModalProps> = ({ post, isOpen, onClose }) 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const sendingRef = useRef(false);
 
-  // 채팅방 ID 확보 (POST /api/chat/room?sharePostId=) — 실패 시 localStorage 폴백
-  const { data: roomId, isSuccess: hasRoomId } = useQuery({
+  // 목록에서 연 방은 post.id가 "room_14" 형태 → createRoom 호출하지 않고 roomId 직접 사용
+  const isRoomIdFromList = Boolean(
+    post?.id && typeof post.id === 'string' && /^room_\d+$/.test(post.id)
+  );
+  const roomIdFromList = isRoomIdFromList
+    ? parseInt((post!.id as string).replace(/^room_/, ''), 10)
+    : undefined;
+
+  const { data: roomIdFromApi, isSuccess: hasRoomIdFromApi } = useQuery({
     queryKey: ['chat-room', post?.id],
     queryFn: () => chatApi.createRoom(post!.id),
-    enabled: !!post?.id && isOpen,
+    enabled: !!post?.id && isOpen && !isRoomIdFromList,
     retry: false,
   });
+
+  const roomId = isRoomIdFromList ? roomIdFromList! : roomIdFromApi;
+  const hasRoomId = isRoomIdFromList ? true : hasRoomIdFromApi;
 
   // 내 채팅방 목록에서 현재 방의 상대방 닉네임 조회 (헤더에 "↔ 상대방" 표시용)
   const { data: apiRooms } = useQuery({
@@ -345,7 +392,7 @@ const ChatRoomModal: React.FC<ChatRoomModalProps> = ({ post, isOpen, onClose }) 
     queryClient.refetchQueries({ queryKey: ['all-nearby-posts'] });
   }, [queryClient]);
 
-  // 예약 상태 조회: GET .../status?roomId= (진입 시 + 폴링). 대기 중일 때 2초, 확정 시 폴링 중단
+  // 예약 상태 조회: GET .../status?roomId= (진입 시 + 폴링). postId가 "room_14" 형태면 API 호출 안 함
   const {
     data: reservationStatus,
     isSuccess: reservationApiReady,
@@ -355,7 +402,7 @@ const ChatRoomModal: React.FC<ChatRoomModalProps> = ({ post, isOpen, onClose }) 
   } = useQuery({
     queryKey: ['reservation-status', post?.id, roomId],
     queryFn: () => reservationApi.getStatus(post!.id, roomId!),
-    enabled: !!post?.id && roomId != null && isOpen,
+    enabled: !!post?.id && roomId != null && isOpen && !isRoomIdFromList,
     retry: false,
     refetchOnWindowFocus: true,
     refetchInterval: (query) => {
@@ -367,11 +414,8 @@ const ChatRoomModal: React.FC<ChatRoomModalProps> = ({ post, isOpen, onClose }) 
     refetchIntervalInBackground: true,
   });
 
-  // 예약 확정: 2-2(방 단위 동일 응답)·2-3(postStatus RESERVED) 기준. (myAgreed&&otherAgreed)는 보완용
-  const isReservationConfirmed =
-    reservationStatus?.postStatus === 'RESERVED' ||
-    reservationStatus?.bothAgreed === true ||
-    (reservationStatus?.myAgreed === true && reservationStatus?.otherAgreed === true);
+  // 예약 확정: postStatus가 RESERVED일 때만 표시 (DB 초기화 등으로 bothAgreed만 true인 잘못된 응답 방지)
+  const isReservationConfirmed = reservationStatus?.postStatus === 'RESERVED';
 
   // 폴링으로 예약 확정 감지됐을 때 게시글 목록 즉시 갱신 (먼저 예약한 사람 쪽에서도 reserved 반영)
   const prevBothAgreedRef = useRef(false);
@@ -426,8 +470,10 @@ const ChatRoomModal: React.FC<ChatRoomModalProps> = ({ post, isOpen, onClose }) 
   }, [isOpen, onClose]);
 
   const handleSend = () => {
+    if (sendingRef.current) return;
     const text = input.trim();
     if (!text || !post) return;
+    sendingRef.current = true;
     if (hasRoomId && roomId != null) {
       sendSocket(text);
       setInput('');
@@ -443,6 +489,9 @@ const ChatRoomModal: React.FC<ChatRoomModalProps> = ({ post, isOpen, onClose }) 
       saveMessages(post.id, next);
       setInput('');
     }
+    setTimeout(() => {
+      sendingRef.current = false;
+    }, 150);
   };
 
   const handleReservationAgree = () => {
@@ -524,10 +573,14 @@ const ChatRoomModal: React.FC<ChatRoomModalProps> = ({ post, isOpen, onClose }) 
           <div ref={messagesEndRef} />
         </div>
 
-        {/* 예약하기 — 채팅 연결된 경우 둘 다 표시 (먼저 건 사람 + 나눔 하는 사람) */}
+        {/* 예약하기 — 채팅 연결된 경우 둘 다 표시. 목록에서 연 방(room_14)은 예약 API 미지원 */}
         {hasRoomId && post && (
           <div className="chat-room-reservation">
-            {reservationApiReady && reservationStatus ? (
+            {isRoomIdFromList ? (
+              <p className="chat-room-reservation-status hint">
+                예약은 해당 나눔 글에서 채팅을 열면 이용할 수 있습니다.
+              </p>
+            ) : reservationApiReady && reservationStatus ? (
               <>
                 {isReservationConfirmed ? (
                   <p className="chat-room-reservation-status confirmed">예약 확정됨</p>
@@ -600,8 +653,9 @@ const ChatRoomModal: React.FC<ChatRoomModalProps> = ({ post, isOpen, onClose }) 
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
+              if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
                 e.preventDefault();
+                e.stopPropagation();
                 handleSend();
               }
             }}

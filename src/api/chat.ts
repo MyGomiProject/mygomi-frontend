@@ -11,6 +11,8 @@ export interface ChatRoomItem {
   roomId: number;
   postTitle: string;
   opponentNickname: string;
+  /** 해당 채팅방이 연결된 나눔 글 ID (목록에서 예약 API 연동용) */
+  sharePostId?: number;
 }
 
 /** GET /api/chat/room/{roomId}/messages 응답 & 실시간 수신 메시지 */
