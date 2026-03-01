@@ -12,6 +12,7 @@ import SharePostCreatePage from './pages/SharePostCreatePage';
 import TestPage from './pages/TestPage';
 import { AuthProvider } from './contexts/AuthContext';
 import ChatNotificationListener from './components/ChatNotificationListener';
+import KeywordAlertPoller from './components/KeywordAlertPoller';
 import './App.css';
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ function App() {
         <BrowserRouter>
           <div className="App">
             <ChatNotificationListener />
+            <KeywordAlertPoller />
             <Routes>
               {/* 팀원의 기본 페이지 구조를 따릅니다 */}
               <Route path="/" element={<HomePage />} />
