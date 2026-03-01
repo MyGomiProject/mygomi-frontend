@@ -8,6 +8,11 @@ import {
   getSeenNotificationRoomIds,
   markNotificationRoomSeen,
 } from './ChatRoomModal';
+import {
+  getKeywordAlertUnseen,
+  markKeywordAlertSeen,
+  type KeywordAlertItem,
+} from '../utils/keywordAlert';
 import BellIcon from './BellIcon';
 import './Header.css';
 
@@ -17,6 +22,9 @@ const Header: React.FC = () => {
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [seenNotificationRoomIds, setSeenNotificationRoomIds] = useState<number[]>(() =>
     getSeenNotificationRoomIds()
+  );
+  const [keywordAlerts, setKeywordAlerts] = useState<KeywordAlertItem[]>(() =>
+    getKeywordAlertUnseen()
   );
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -56,6 +64,12 @@ const Header: React.FC = () => {
     return () => window.removeEventListener('chat-notification-received', handleChatNotification);
   }, []);
 
+  useEffect(() => {
+    const handler = () => setKeywordAlerts(getKeywordAlertUnseen());
+    window.addEventListener('keyword-alert-updated', handler);
+    return () => window.removeEventListener('keyword-alert-updated', handler);
+  }, []);
+
   const handleLoginClick = () => {
     navigate('/login');
   };
@@ -75,6 +89,15 @@ const Header: React.FC = () => {
     setNotificationOpen(false);
     navigate('/mypage', { state: { openChat: { id: room.postId, title: room.title, author: room.author } } });
   };
+
+  const handleKeywordAlertClick = (postId: string) => {
+    markKeywordAlertSeen(postId);
+    setKeywordAlerts((prev) => prev.filter((a) => a.postId !== postId));
+    setNotificationOpen(false);
+    navigate('/sharing', { state: { openPostId: postId } });
+  };
+
+  const totalNotificationCount = unreadChatRoomList.length + keywordAlerts.length;
 
   // 닉네임이 있으면 닉네임, 없으면 이메일 앞부분 표시
   const displayName = user?.nickname || user?.email?.split('@')[0] || '사용자';
@@ -100,44 +123,70 @@ const Header: React.FC = () => {
                   type="button"
                   className="header-notification-btn"
                   onClick={handleNotificationToggle}
-                  aria-label="채팅 알림"
-                  title="채팅 알림"
+                  aria-label="알림"
+                  title="알림"
                 >
                   <span className="header-notification-icon-wrap">
                     <BellIcon className="header-notification-icon" size={22} />
-                    {unreadChatRoomList.length > 0 && (
-                      <span className="header-notification-badge">{unreadChatRoomList.length}</span>
+                    {totalNotificationCount > 0 && (
+                      <span className="header-notification-badge">{totalNotificationCount}</span>
                     )}
                   </span>
                 </button>
                 {notificationOpen && (
                   <div className="header-notification-dropdown">
-                    <div className="header-notification-dropdown-title">채팅 알림</div>
-                    {unreadChatRoomList.length === 0 ? (
-                      <div className="header-notification-empty">진행 중인 채팅이 없습니다.</div>
-                    ) : (
-                      <ul className="header-notification-list">
-                        {unreadChatRoomList.map((room) => (
-                          <li key={room.roomId} className="header-notification-item">
-                            <button
-                              type="button"
-                              className="header-notification-item-btn"
-                              onClick={() => handleChatRoomClick(room)}
-                            >
-                              <span className="header-notification-item-title">{room.title}</span>
-                              {room.author && (
-                                <span className="header-notification-item-author">↔ {room.author}</span>
-                              )}
-                              {room.lastMessage && (
-                                <span className="header-notification-item-preview">
-                                  {room.lastMessage.length > 25 ? room.lastMessage.slice(0, 25) + '…' : room.lastMessage}
-                                </span>
-                              )}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
+                    <div className="header-notification-dropdown-title">알림</div>
+                    <div className="header-notification-body">
+                      {/* 채팅 알림 섹션 */}
+                      <div className="header-notification-section">
+                      <div className="header-notification-section-title">채팅</div>
+                      {unreadChatRoomList.length === 0 ? (
+                        <div className="header-notification-empty">진행 중인 채팅이 없습니다.</div>
+                      ) : (
+                        <ul className="header-notification-list">
+                          {unreadChatRoomList.map((room) => (
+                            <li key={room.roomId} className="header-notification-item">
+                              <button
+                                type="button"
+                                className="header-notification-item-btn"
+                                onClick={() => handleChatRoomClick(room)}
+                              >
+                                <span className="header-notification-item-title">{room.title}</span>
+                                {room.author && (
+                                  <span className="header-notification-item-author">↔ {room.author}</span>
+                                )}
+                                {room.lastMessage && (
+                                  <span className="header-notification-item-preview">
+                                    {room.lastMessage.length > 25 ? room.lastMessage.slice(0, 25) + '…' : room.lastMessage}
+                                  </span>
+                                )}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    {/* 키워드 알림 섹션 */}
+                    {keywordAlerts.length > 0 && (
+                      <div className="header-notification-section">
+                        <div className="header-notification-section-title">키워드 알림</div>
+                        <ul className="header-notification-list">
+                          {keywordAlerts.map((alert) => (
+                            <li key={`${alert.postId}-${alert.keyword}`} className="header-notification-item">
+                              <button
+                                type="button"
+                                className="header-notification-item-btn"
+                                onClick={() => handleKeywordAlertClick(alert.postId)}
+                              >
+                                <span className="header-notification-item-title">[{alert.keyword}] {alert.title}</span>
+                                <span className="header-notification-item-preview">새 글이 올라왔어요</span>
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     )}
+                    </div>
                     <div className="header-notification-footer">
                       <Link to="/mypage" className="header-notification-link" onClick={() => setNotificationOpen(false)}>
                         마이페이지에서 채팅 보기

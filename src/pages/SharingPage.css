@@ -86,7 +86,42 @@
   margin-bottom: 0.5rem;
   height: 1.95rem; /* map-section-title과 동일한 높이 */
   position: relative;
-  z-index: 2;
+  z-index: 10;
+}
+
+.posts-header-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  position: relative;
+  z-index: 10;
+}
+
+.keyword-alert-button {
+  background: #e6a23c;
+  color: #ffffff;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  box-shadow: 0 2px 6px rgba(230, 162, 60, 0.35);
+  position: relative;
+  z-index: 5;
+}
+
+.keyword-alert-button:hover {
+  background: #d89220;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(230, 162, 60, 0.45);
+}
+
+.keyword-alert-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(230, 162, 60, 0.35);
 }
 
 .posts-title {
@@ -108,7 +143,7 @@
   font-size: 0.9rem;
   font-weight: bold;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.2s, box-shadow 0.2s, transform 0.2s;
   box-shadow: 0 2px 8px rgba(102, 187, 106, 0.3);
   position: relative;
   z-index: 5;
@@ -118,11 +153,11 @@
   background: #4caf50;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(102, 187, 106, 0.4);
-  z-index: 15;
 }
 
 .write-button:active {
   transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(102, 187, 106, 0.3);
 }
 
 /* =========================================

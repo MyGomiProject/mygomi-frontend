@@ -109,8 +109,9 @@ export const sharePostApi = {
   },
   
   getPost: async (id: string): Promise<SharePostResponse> => {
-    const response = await apiClient.get<SharePostResponse>(`/api/share-posts/${id}`);
-    return response.data;
+    const response = await apiClient.get<SharePostResponse | { data: SharePostResponse }>(`/api/share-posts/${id}`);
+    const body = response.data as SharePostResponse & { data?: SharePostResponse };
+    return body && typeof body.data !== 'undefined' ? body.data : (response.data as SharePostResponse);
   },
   
   getPosts: async (params?: {

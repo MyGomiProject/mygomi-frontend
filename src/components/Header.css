@@ -139,7 +139,7 @@
   top: calc(100% + 8px);
   right: 0;
   width: 320px;
-  max-height: 380px;
+  max-height: min(420px, calc(100vh - 100px));
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
@@ -149,6 +149,13 @@
   overflow: hidden;
 }
 
+.header-notification-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 .header-notification-dropdown-title {
   padding: 1rem 1.25rem;
   font-size: 1rem;
@@ -156,6 +163,24 @@
   color: #2c2c2c;
   border-bottom: 1px solid #eee;
   flex-shrink: 0;
+}
+
+.header-notification-section {
+  flex-shrink: 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.header-notification-section:last-of-type {
+  border-bottom: none;
+}
+
+.header-notification-section-title {
+  padding: 0.5rem 1.25rem 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #66bb6a;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .header-notification-empty {
@@ -169,8 +194,7 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  overflow-y: auto;
-  max-height: 280px;
+  overflow: visible;
 }
 
 .header-notification-item {
