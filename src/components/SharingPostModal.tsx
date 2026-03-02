@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { sharePostApi } from '../api/sharePost';
+import { getCategoryLabel, getCategoryEmoji } from '../constants/sharePost';
 import './SharingPostModal.css';
 
 interface SharingPost {
@@ -139,17 +140,6 @@ const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClo
     onClose();
   };
 
-  // 카테고리 한글 매핑
-  const categoryLabels: Record<string, string> = {
-    FURNITURE: '가구',
-    ELECTRONICS: '전자제품',
-    CLOTHING: '의류',
-    BOOKS: '도서',
-    TOYS: '장난감',
-    KITCHEN: '주방용품',
-    ETC: '기타',
-  };
-
   // 상태 한글 매핑 (4개 상태)
   const statusLabels: Record<string, { label: string; color: string; bgColor: string }> = {
     OPEN: { label: '나눔 대기', color: '#66bb6a', bgColor: 'rgba(102, 187, 106, 0.1)' },
@@ -285,7 +275,7 @@ const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClo
               {post.category && (
                 <div className="modal-meta-item">
                   <span className="meta-label">카테고리</span>
-                  <span className="meta-value">📦 {categoryLabels[post.category] || post.category}</span>
+                  <span className="meta-value">{getCategoryEmoji(post.category)} {getCategoryLabel(post.category)}</span>
                 </div>
               )}
               <div className="modal-meta-item">
