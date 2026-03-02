@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { sharePostApi } from '../api/sharePost';
+import { getCategoryLabel, getCategoryEmoji } from '../constants/sharePost';
 import Loading from './Loading';
 import ErrorDisplay from './ErrorDisplay';
 import './SharingPostList.css';
@@ -32,17 +33,6 @@ interface SharingPostListProps {
 
 const SharingPostList: React.FC<SharingPostListProps> = ({ posts, onPostClick, ward, status, hideMyPosts = false }) => {
   const { user } = useAuth();
-  // 카테고리 한글 매핑
-  const categoryLabels: Record<string, string> = {
-    FURNITURE: '가구',
-    ELECTRONICS: '전자제품',
-    CLOTHING: '의류',
-    BOOKS: '도서',
-    TOYS: '장난감',
-    KITCHEN: '주방용품',
-    ETC: '기타',
-  };
-
   // 상태 한글 매핑
   const statusLabels: Record<string, { label: string; color: string }> = {
     OPEN: { label: '나눔 대기', color: '#66bb6a' },
@@ -199,7 +189,7 @@ const SharingPostList: React.FC<SharingPostListProps> = ({ posts, onPostClick, w
               <div className="post-info">
                 {post.category && (
                   <span className="post-category">
-                    📦 {categoryLabels[post.category] || post.category}
+                    {getCategoryEmoji(post.category)} {getCategoryLabel(post.category)}
                   </span>
                 )}
                 <span className="post-location">📍 {post.location}</span>
