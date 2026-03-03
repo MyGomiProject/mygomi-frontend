@@ -14,6 +14,7 @@ import ItemDetailView from '../components/ItemDetailView';
 import NotFoundSection from '../components/NotFoundSection';
 import Loading from '../components/Loading';
 import ErrorDisplay from '../components/ErrorDisplay';
+import ReportInfoModal from '../components/ReportInfoModal';
 
 import { useAuth } from '../contexts/AuthContext';
 
@@ -27,6 +28,7 @@ const IntegratedSearchPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
+  const [reportingItemName, setReportingItemName] = useState<string | null>(null);
 
   const addressId = user?.address?.id || DEFAULT_ADDRESS_ID;
   const urlQuery = searchParams.get('q') || '';
@@ -212,9 +214,20 @@ const IntegratedSearchPage: React.FC = () => {
           📅 {result.item.nameKo}의 가장 가까운 수거일은 <strong>{result.nextPickupText}</strong> 입니다!
         </div>
       )}
-    </div>
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+        <button 
+          onClick={() => setReportingItemName(result.item.nameKo)}
+          style={{ 
+            background: 'none', border: 'none', cursor: 'pointer', 
+            color: '#666', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px'
+          }}
+        >
+          🚨 잘못된 정보 제보하기
+        </button>
+      </div>
 
-    {/* 💡 2. 점선 분리: 마지막 카드가 아닐 때만 점선을 "따로" 그려줍니다 */}
+    {/* 💡 2. 점선 분리 */}
     {index < processedResults.length - 1 && (
       <div className="card-dashed-line"></div>
     )}
@@ -236,6 +249,16 @@ const IntegratedSearchPage: React.FC = () => {
           </div>
         </section>
       </main>
+
+      {/* reportingItemName에 값이 있을 때만 신고버튼 뜨게 */}
+      {reportingItemName && (
+        <ReportInfoModal
+          itemName={reportingItemName} 
+          onClose={() => setReportingItemName(null)} 
+        />
+      )}
+
+
     </div>
   );
 };

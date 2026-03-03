@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { sharePostApi } from '../api/sharePost';
 import { getCategoryLabel, getCategoryEmoji } from '../constants/sharePost';
+import ReportPostModal from './ReportPostModal';
 import './SharingPostModal.css';
 
 interface SharingPost {
@@ -32,6 +33,7 @@ const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClo
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [currentStatus, setCurrentStatus] = useState<'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED' | undefined>(post?.status);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   
   // 본인 게시글인지 확인
   const isMyPost = user && post?.userId && post.userId === user.id;
@@ -195,7 +197,9 @@ const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClo
   };
 
   return (
-    <div className="sharing-post-modal-overlay" onClick={onClose}>
+    <>
+    <div className="sharing-post-modal-overlay" onClick={onClose}
+    style={{ display: isReportModalOpen ? 'none' : 'flex' }}>
       <div className="sharing-post-modal" onClick={(e) => e.stopPropagation()}>
         <button className="modal-close-button" onClick={onClose}>
           ×
@@ -319,10 +323,28 @@ const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClo
                 </>
               )}
             </div>
+            {!isMyPost && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '15px' }}>
+                <button 
+                  onClick={() => setIsReportModalOpen(true)}
+                  style={{ background: 'none', border: 'none', color: '#999', fontSize: '13px', textDecoration: 'underline', cursor: 'pointer' }}
+                >
+                  🚨 이 게시글 신고하기
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
-    </div>
+      </div>
+        {isReportModalOpen && post && (
+          <ReportPostModal 
+            postId={Number(post.id)} 
+            postTitle={post.title}
+            onClose={() => setIsReportModalOpen(false)} 
+          />
+      )}
+    </>
   );
 };
 
