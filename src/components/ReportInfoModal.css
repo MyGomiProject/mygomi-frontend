@@ -1,5 +1,5 @@
-/* 나눔 게시글 신고 모달 - 디자인 스펙 기준 */
-.report-modal-overlay {
+/* 정보 제보 모달 - 디자인 스펙(10-app-design-spec) 기준 */
+.report-info-modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
@@ -10,7 +10,7 @@
   padding: 1rem;
 }
 
-.report-modal-content {
+.report-info-modal {
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
@@ -22,7 +22,7 @@
   overflow: hidden;
 }
 
-.report-modal-header {
+.report-info-modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -31,7 +31,7 @@
   flex-shrink: 0;
 }
 
-.report-modal-title {
+.report-info-modal-title {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 700;
@@ -41,7 +41,7 @@
   gap: 0.5rem;
 }
 
-.report-modal-close {
+.report-info-modal-close {
   background: none;
   border: none;
   font-size: 1.5rem;
@@ -53,44 +53,40 @@
   transition: background-color 0.2s, color 0.2s;
 }
 
-.report-modal-close:hover {
+.report-info-modal-close:hover {
   background-color: #f0f0f0;
   color: #333;
 }
 
-.report-modal-body {
+.report-info-modal-body {
   padding: 1.25rem 1.5rem;
   overflow-y: auto;
   flex: 1;
   min-height: 0;
 }
 
-.report-target-text {
+.report-info-modal-desc {
   margin: 0 0 1.25rem 0;
   font-size: 0.9rem;
   color: #555;
   line-height: 1.5;
 }
 
-.report-target-text strong {
-  color: #2c2c2c;
-  font-weight: 600;
-}
-
-.report-input-group {
+.report-info-form-group {
   margin-bottom: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
 }
 
-.report-input-group label {
+.report-info-form-group label {
   font-size: 0.875rem;
   font-weight: 600;
   color: #555;
 }
 
-.report-input {
+.report-info-input,
+.report-info-textarea {
   width: 100%;
   padding: 0.75rem 1rem;
   border: 1px solid #e0e0e0;
@@ -98,44 +94,95 @@
   font-size: 0.95rem;
   font-family: inherit;
   box-sizing: border-box;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s;
 }
 
-.report-input:focus {
+.report-info-input:focus,
+.report-info-textarea:focus {
   outline: none;
   border-color: #66bb6a;
   box-shadow: 0 0 0 2px rgba(102, 187, 106, 0.15);
 }
 
-.report-input-group textarea.report-input {
+.report-info-textarea {
   resize: vertical;
-  min-height: 96px;
+  min-height: 100px;
 }
 
-.report-checkbox-label {
+/* 파일 선택: 실제 input 숨기고 커스텀 버튼으로 디자인 */
+.report-info-file-input-hidden {
+  position: absolute;
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.report-info-file-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.report-info-file-btn {
+  padding: 0.6rem 1.25rem;
+  background: #fff;
+  color: #66bb6a;
+  border: 1.5px solid #66bb6a;
+  border-radius: 10px;
   font-size: 0.9rem;
-  color: #555;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.report-info-file-btn:hover {
+  background: #66bb6a;
+  color: #fff;
+}
+
+.report-info-file-name {
+  font-size: 0.9rem;
+  color: #666;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.report-info-file-hint {
+  font-size: 0.8rem;
+  color: #999;
+  margin-top: 0.25rem;
+}
+
+.report-info-checkbox-wrap {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
+  font-size: 0.9rem;
+  color: #555;
 }
 
-.report-checkbox-label input {
+.report-info-checkbox-wrap input {
   width: 1.1rem;
   height: 1.1rem;
   accent-color: #66bb6a;
 }
 
-.report-button-group {
+.report-info-modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #eee;
   display: flex;
   gap: 0.75rem;
-  margin-top: 1.25rem;
-  padding-top: 1rem;
-  border-top: 1px solid #eee;
+  flex-shrink: 0;
 }
 
-.report-btn-cancel {
+.report-info-btn-cancel {
   flex: 1;
   padding: 0.75rem 1rem;
   background: #f5f5f5;
@@ -148,14 +195,14 @@
   transition: background-color 0.2s;
 }
 
-.report-btn-cancel:hover {
+.report-info-btn-cancel:hover {
   background: #eee;
 }
 
-.report-btn-submit {
+.report-info-btn-submit {
   flex: 1;
   padding: 0.75rem 1rem;
-  background: #e53935;
+  background: #66bb6a;
   color: #fff;
   border: none;
   border-radius: 10px;
@@ -165,13 +212,12 @@
   transition: background-color 0.2s;
 }
 
-.report-btn-submit:hover:not(:disabled) {
-  background: #c62828;
+.report-info-btn-submit:hover:not(:disabled) {
+  background: #4caf50;
 }
 
-.report-btn-submit:disabled {
-  background: #ffcdd2;
-  color: #fff;
+.report-info-btn-submit:disabled {
+  background: #a5d6a7;
   cursor: not-allowed;
   opacity: 0.8;
 }

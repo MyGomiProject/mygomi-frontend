@@ -1,6 +1,10 @@
 import React from 'react';
 
-const NotFoundSection: React.FC = () => {
+interface NotFoundSectionProps {
+  onReportClick?: () => void;
+}
+
+const NotFoundSection: React.FC<NotFoundSectionProps> = ({ onReportClick }) => {
   return (
     <div style={{
       textAlign: 'center',
@@ -15,14 +19,14 @@ const NotFoundSection: React.FC = () => {
       <button 
         style={{
           padding: '12px 24px',
-          backgroundColor: '#63E6BE',
+          backgroundColor: '#66bb6a',
           border: 'none',
-          borderRadius: '8px',
+          borderRadius: '10px',
           color: '#fff',
-          fontWeight: 'bold',
+          fontWeight: '600',
           cursor: 'pointer'
         }}
-        onClick={() => alert('제보하기 페이지로 이동합니다 (준비 중)')}
+        onClick={onReportClick}
       >
         정보 제보하기
       </button>
