@@ -236,7 +236,11 @@ const IntegratedSearchPage: React.FC = () => {
                 </div>
               ) : (
                 // 검색 결과가 없는 경우
-                urlQuery && <NotFoundSection />
+                urlQuery && (
+                  <NotFoundSection
+                    onReportClick={() => setReportingItemName(urlQuery)}
+                  />
+                )
               )}
 
               {/* 검색어가 없을 때의 초기 안내 */}

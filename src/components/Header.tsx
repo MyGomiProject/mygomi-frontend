@@ -112,10 +112,9 @@ const Header: React.FC = () => {
           </Link>
         </div>
         <nav className="header-nav">
-          <a href="#waste-guide" className="nav-link">분리수거 정보</a>
+          <Link to="/integrated-search" className="nav-link">분리수거 정보</Link>
           <Link to="/sharing" className="nav-link">나눔</Link>
-          <a href="#notice" className="nav-link">신고</a>
-          <Link to="/mypage" className="nav-link">마이페이지</Link>
+          {token && <Link to="/mypage" className="nav-link">마이페이지</Link>}
           {token ? (
             <div className="user-menu">
               <div className="header-notification-wrap" ref={dropdownRef}>

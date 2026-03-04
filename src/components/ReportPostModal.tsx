@@ -59,16 +59,32 @@ export default function ReportPostModal({ postId, postTitle, onClose }: Props) {
   return (
     <div className="report-modal-overlay" onClick={onClose}>
       <div className="report-modal-content" onClick={(e) => e.stopPropagation()}>
-        <h2>🚨 게시글 신고</h2>
-        <p className="report-target-text">
-          신고 대상: <strong>{postTitle}</strong>
-        </p>
+        <div className="report-modal-header">
+          <h2 className="report-modal-title">
+            <span aria-hidden>🚨</span>
+            게시글 신고
+          </h2>
+          <button
+            type="button"
+            className="report-modal-close"
+            onClick={onClose}
+            aria-label="닫기"
+          >
+            ×
+          </button>
+        </div>
 
-        <form onSubmit={(e) => { e.preventDefault(); submitMutation.mutate(); }}>
-          
-          <div className="report-input-group">
-            <select
-              className="report-input"
+        <div className="report-modal-body">
+          <p className="report-target-text">
+            신고 대상: <strong>{postTitle}</strong>
+          </p>
+
+          <form onSubmit={(e) => { e.preventDefault(); submitMutation.mutate(); }}>
+            <div className="report-input-group">
+              <label htmlFor="report-reason">신고 사유</label>
+              <select
+                id="report-reason"
+                className="report-input"
               value={formData.reason}
               onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
               required
@@ -83,7 +99,9 @@ export default function ReportPostModal({ postId, postTitle, onClose }: Props) {
           </div>
 
           <div className="report-input-group">
+            <label htmlFor="report-title">제목</label>
             <input
+              id="report-title"
               type="text"
               className="report-input"
               placeholder="신고 제목을 입력하세요"
@@ -94,7 +112,9 @@ export default function ReportPostModal({ postId, postTitle, onClose }: Props) {
           </div>
 
           <div className="report-input-group">
+            <label htmlFor="report-content">상세 사유</label>
             <textarea
+              id="report-content"
               className="report-input"
               placeholder="상세 신고 사유를 적어주세요. (허위 매물, 스팸, 욕설 등)"
               value={formData.content}
@@ -117,10 +137,12 @@ export default function ReportPostModal({ postId, postTitle, onClose }: Props) {
 
           {formData.emailReply && (
             <div className="report-input-group">
+              <label htmlFor="report-email">답변 받을 이메일</label>
               <input
+                id="report-email"
                 type="email"
                 className="report-input"
-                placeholder="답변 받을 이메일 주소"
+                placeholder="example@email.com"
                 value={formData.reporterEmail}
                 onChange={(e) => setFormData({ ...formData, reporterEmail: e.target.value })}
                 required={formData.emailReply}
@@ -137,6 +159,7 @@ export default function ReportPostModal({ postId, postTitle, onClose }: Props) {
             </button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   );
