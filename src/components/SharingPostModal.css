@@ -259,6 +259,7 @@
 .modal-description {
   flex: 1;
   overflow-y: visible;
+  min-height: 0;
   margin-bottom: 1rem;
 }
 
