@@ -113,7 +113,7 @@ const Header: React.FC = () => {
         </div>
         <nav className="header-nav">
           <Link to="/integrated-search" className="nav-link">분리수거 정보</Link>
-          <Link to="/sharing" className="nav-link">나눔</Link>
+          {token && <Link to="/sharing" className="nav-link">나눔</Link>}
           {token && <Link to="/mypage" className="nav-link">마이페이지</Link>}
 
           {/* 💡 관리자(ADMIN)용 */}
