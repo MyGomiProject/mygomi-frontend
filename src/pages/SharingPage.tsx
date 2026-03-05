@@ -164,7 +164,7 @@ const SharingPage: React.FC = () => {
                   </button>
                 </div>
               </div>
-              <SharingPostList onPostClick={handlePostClick} hideMyPosts />
+              <SharingPostList onPostClick={handlePostClick} />
               <button 
                 className="view-all-button"
                 onClick={() => setIsAllPostsModalOpen(true)}
@@ -180,6 +180,10 @@ const SharingPage: React.FC = () => {
         isOpen={isModalOpen} 
         onClose={handleCloseModal}
         onOpenChat={(post) => setChatPost({ id: post.id, title: post.title, author: post.author, userId: post.userId })}
+        onEditPost={(post) => {
+          setIsModalOpen(false);
+          navigate(`/sharing/create?postId=${post.id}`);
+        }}
       />
       <ChatRoomModal
         post={chatPost}

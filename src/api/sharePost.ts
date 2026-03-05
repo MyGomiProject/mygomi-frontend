@@ -3,7 +3,7 @@ import apiClient from './client';
 export interface SharePostRequest {
   title: string;
   content: string;
-  category: 'FURNITURE' | 'ELECTRONICS' | 'CLOTHING' | 'BOOKS' | 'TOYS' | 'KITCHEN' | 'ETC';
+  category: 'FURNITURE' | 'ELECTRONICS' | 'CLOTHING' | 'BOOKS' | 'KITCHENWARE' | 'SPORTS' | 'ETC';
   lat: number;
   lng: number;
   prefecture?: string;

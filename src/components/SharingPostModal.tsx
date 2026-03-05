@@ -27,9 +27,18 @@ interface SharingPostModalProps {
   onViewDetail?: (post: SharingPost) => void;
   onStatusUpdate?: (postId: string, newStatus: 'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED') => void;
   onOpenChat?: (post: SharingPost) => void;
+  onEditPost?: (post: SharingPost) => void;
 }
 
-const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClose, onViewDetail, onStatusUpdate, onOpenChat }) => {
+const SharingPostModal: React.FC<SharingPostModalProps> = ({
+  post,
+  isOpen,
+  onClose,
+  onViewDetail,
+  onStatusUpdate,
+  onOpenChat,
+  onEditPost,
+}) => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [currentStatus, setCurrentStatus] = useState<'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED' | undefined>(post?.status);
@@ -301,6 +310,14 @@ const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClo
               </button>
               {isMyPost && (
                 <>
+                  {onEditPost && (
+                    <button
+                      className="action-button secondary"
+                      onClick={() => onEditPost(post)}
+                    >
+                      수정하기
+                    </button>
+                  )}
                   <button 
                     className={`action-button ${currentStatus === 'OPEN' ? 'secondary' : 'primary'}`}
                     onClick={handleToggleStatus}

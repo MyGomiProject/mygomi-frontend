@@ -4,8 +4,8 @@ export type SharePostCategoryKey =
   | 'ELECTRONICS'
   | 'CLOTHING'
   | 'BOOKS'
-  | 'TOYS'
-  | 'KITCHEN'
+  | 'KITCHENWARE'
+  | 'SPORTS'
   | 'ETC';
 
 export const SHARE_POST_CATEGORIES: Record<
@@ -16,8 +16,8 @@ export const SHARE_POST_CATEGORIES: Record<
   ELECTRONICS: { label: '전자제품', emoji: '📱' },
   CLOTHING: { label: '의류', emoji: '👕' },
   BOOKS: { label: '도서', emoji: '📚' },
-  TOYS: { label: '장난감', emoji: '🧸' },
-  KITCHEN: { label: '주방용품', emoji: '🍳' },
+  KITCHENWARE: { label: '주방/주방용품', emoji: '🍳' },
+  SPORTS: { label: '스포츠/레저', emoji: '🏀' },
   ETC: { label: '기타', emoji: '📦' },
 };
 
