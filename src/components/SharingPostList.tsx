@@ -35,7 +35,7 @@ const SharingPostList: React.FC<SharingPostListProps> = ({ posts, onPostClick, w
   const { user } = useAuth();
   // 상태 한글 매핑
   const statusLabels: Record<string, { label: string; color: string }> = {
-    OPEN: { label: '나눔 대기', color: '#66bb6a' },
+    OPEN: { label: '나눔 중', color: '#66bb6a' },
     RESERVED: { label: '예약됨', color: '#ff9800' },
     COMPLETED: { label: '나눔 완료', color: '#999' },
     DELETED: { label: '삭제됨', color: '#f44336' },
@@ -207,4 +207,3 @@ const SharingPostList: React.FC<SharingPostListProps> = ({ posts, onPostClick, w
 };
 
 export default SharingPostList;
-

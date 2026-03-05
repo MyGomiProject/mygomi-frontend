@@ -143,7 +143,7 @@ const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClo
 
   // 상태 한글 매핑 (4개 상태)
   const statusLabels: Record<string, { label: string; color: string; bgColor: string }> = {
-    OPEN: { label: '나눔 대기', color: '#66bb6a', bgColor: 'rgba(102, 187, 106, 0.1)' },
+    OPEN: { label: '나눔 중', color: '#66bb6a', bgColor: 'rgba(102, 187, 106, 0.1)' },
     RESERVED: { label: '예약됨', color: '#ff9800', bgColor: 'rgba(255, 152, 0, 0.1)' },
     COMPLETED: { label: '나눔 완료', color: '#999', bgColor: 'rgba(153, 153, 153, 0.1)' },
     DELETED: { label: '삭제됨', color: '#f44336', bgColor: 'rgba(244, 67, 54, 0.1)' },
@@ -348,4 +348,3 @@ const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClo
 };
 
 export default SharingPostModal;
-
