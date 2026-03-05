@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { reportsApi } from '../api/reports';
-import './AdminReportList.css'; // ✨ 방금 만든 CSS 파일 임포트
+import Header from '../components/Header';
+import ParallaxBackground from '../components/ParallaxBackground';
+import './AdminReportList.css';
 
 export default function AdminReportList() {
   const queryClient = useQueryClient();
@@ -66,10 +68,23 @@ export default function AdminReportList() {
     }
   };
 
-  if (isLoading) return <div style={{ padding: '100px', textAlign: 'center' }}>데이터를 불러오는 중...</div>;
+  if (isLoading) {
+    return (
+      <div className="admin-page-wrap">
+        <ParallaxBackground />
+        <Header />
+        <div className="admin-dashboard">
+          <div style={{ padding: '100px', textAlign: 'center', color: '#555' }}>데이터를 불러오는 중...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="admin-dashboard">
+    <div className="admin-page-wrap">
+      <ParallaxBackground />
+      <Header />
+      <div className="admin-dashboard">
       <h1>신고/제보 관리</h1>
       
       {/* 1. 필터 영역 */}
@@ -167,6 +182,7 @@ export default function AdminReportList() {
           </tbody>
         </table>
       </div>
+    </div>
     </div>
   );
 }
