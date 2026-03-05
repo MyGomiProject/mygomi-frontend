@@ -76,22 +76,21 @@
   border-bottom: 1px solid #f0f0f0;
 }
 
-/* 검색 인풋 (포커스 시 민트색 테두리) */
+/* 검색 인풋 (포커스 시 메인 그린 테두리) */
 .all-posts-modal-content .search-input {
   flex: 1;
-  padding: 10px 16px;
+  padding: 12px 16px; /* 상하 여백 살짝 늘림 */
   border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  border-radius: 12px; 
+  font-size: 1rem;
   outline: none;
   transition: all 0.2s;
+  background-color: white;
 }
 
 .all-posts-modal-content .search-input:focus {
-  border-color: #00B894;
-  box-shadow: 0 0 0 3px rgba(0, 184, 148, 0.1);
+  border-color: #66bb6a; 
 }
-
 /* 내 글 숨기기 토글 버튼 */
 .all-posts-modal-content .toggle-button {
   padding: 10px 16px;

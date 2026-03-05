@@ -148,7 +148,7 @@ const Header: React.FC = () => {
                       <div className="header-notification-section">
                       <div className="header-notification-section-title">채팅</div>
                       {unreadChatRoomList.length === 0 ? (
-                        <div className="header-notification-empty">진행 중인 채팅이 없습니다.</div>
+                        <div className="header-notification-empty">새로운 채팅이 없습니다.</div>
                       ) : (
                         <ul className="header-notification-list">
                           {unreadChatRoomList.map((room) => (
