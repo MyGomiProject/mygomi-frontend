@@ -40,7 +40,12 @@ const Header: React.FC = () => {
   }, [apiRooms]);
 
   const unreadChatRoomList = useMemo(
-    () => chatRoomList.filter((room) => !seenNotificationRoomIds.includes(room.roomId)),
+    () =>
+      chatRoomList.filter(
+        (room) =>
+          room.lastMessage && // 실제 메시지가 하나라도 있는 방만 알림 대상으로
+          !seenNotificationRoomIds.includes(room.roomId)
+      ),
     [chatRoomList, seenNotificationRoomIds]
   );
 

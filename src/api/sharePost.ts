@@ -151,23 +151,48 @@ export const sharePostApi = {
   updatePost: async (id: string, data: Partial<SharePostRequest>, images?: File[]): Promise<SharePostResponse> => {
     const formData = new FormData();
     
-    if (data.title) formData.append('title', data.title);
-    if (data.content) formData.append('content', data.content);
-    if (data.category) formData.append('category', data.category);
-    if (data.lat !== undefined) formData.append('lat', data.lat.toString());
-    if (data.lng !== undefined) formData.append('lng', data.lng.toString());
-    
-    if (data.prefecture) formData.append('prefecture', data.prefecture);
-    if (data.ward) formData.append('ward', data.ward);
-    if (data.town) formData.append('town', data.town);
-    
+    // createPost와 동일하게 'request' JSON part 사용 (부분 수정만 포함)
+    const requestData: Record<string, unknown> = {};
+    if (typeof data.title === 'string' && data.title.trim()) {
+      requestData.title = data.title.trim();
+    }
+    if (typeof data.content === 'string' && data.content.trim()) {
+      // 백엔드는 description 필드를 사용
+      requestData.description = data.content.trim();
+    }
+    if (data.category) {
+      requestData.category = data.category;
+    }
+    if (typeof data.lat === 'number') {
+      requestData.lat = data.lat;
+    }
+    if (typeof data.lng === 'number') {
+      requestData.lng = data.lng;
+    }
+    if (data.prefecture) {
+      requestData.prefecture = data.prefecture;
+    }
+    if (data.ward) {
+      requestData.ward = data.ward;
+    }
+    if (data.town) {
+      requestData.town = data.town;
+    }
+
+    // 변경 필드가 하나라도 있으면 request part 추가
+    if (Object.keys(requestData).length > 0) {
+      formData.append('request', new Blob([JSON.stringify(requestData)], { type: 'application/json' }));
+    }
+
+    // 새로 업로드한 이미지가 있으면 images part로 전송
     if (images && images.length > 0) {
       images.forEach((image) => {
         formData.append('images', image);
       });
     }
     
-    const response = await apiClient.put<SharePostResponse>(`/api/share-posts/${id}`, formData, {
+    // 백엔드가 PATCH /api/share-posts/{id} (multipart/form-data, request + images)를 사용
+    const response = await apiClient.patch<SharePostResponse>(`/api/share-posts/${id}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

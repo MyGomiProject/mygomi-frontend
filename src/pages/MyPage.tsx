@@ -579,6 +579,10 @@ const MyPage: React.FC = () => {
         onClose={handleClosePostModal}
         onStatusUpdate={handleStatusUpdate}
         onOpenChat={(post) => setChatPost({ id: post.id, title: post.title, author: post.author, userId: post.userId })}
+        onEditPost={(post) => {
+          setIsPostModalOpen(false);
+          navigate(`/sharing/create?postId=${post.id}`);
+        }}
       />
       <ChatRoomModal
         post={chatPost}
