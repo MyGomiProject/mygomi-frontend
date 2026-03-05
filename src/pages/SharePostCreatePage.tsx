@@ -1,20 +1,23 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import Header from '../components/Header';
 import ParallaxBackground from '../components/ParallaxBackground';
-import { sharePostApi, SharePostRequest } from '../api/sharePost';
+import { sharePostApi, SharePostRequest, SharePostResponse } from '../api/sharePost';
 import { useAuth } from '../contexts/AuthContext';
 import { addressApi } from '../api/address';
-import { useQuery } from '@tanstack/react-query';
 import './SharePostCreatePage.css';
 
 const MAX_IMAGES = 5;
 
 const SharePostCreatePage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const searchParams = new URLSearchParams(location.search);
+  const editPostId = searchParams.get('postId');
+  const isEditMode = Boolean(editPostId);
   
   const [formData, setFormData] = useState<SharePostRequest>({
     title: '',
@@ -38,9 +41,37 @@ const SharePostCreatePage: React.FC = () => {
     enabled: !!user,
   });
 
-  // 주소 정보가 로드되면 자동으로 폼에 채우기
+  // 수정 모드일 때 기존 게시글 정보 조회
+  const { data: editPost } = useQuery<SharePostResponse | null>({
+    queryKey: ['share-post-edit', editPostId],
+    queryFn: async () => {
+      if (!editPostId) return null;
+      return await sharePostApi.getPost(editPostId);
+    },
+    enabled: isEditMode,
+  });
+
+  // 주소 정보 또는 수정 대상 게시글이 로드되면 폼 초기값 설정
   useEffect(() => {
-    if (addresses && addresses.length > 0) {
+    // 수정 모드: 기존 게시글 정보를 우선 사용
+    if (isEditMode && editPost) {
+      const description = editPost.description || editPost.content || '';
+      setFormData((prev) => ({
+        ...prev,
+        title: editPost.title || prev.title,
+        content: description,
+        category: (editPost.category as SharePostRequest['category']) || prev.category,
+        lat: editPost.lat ?? prev.lat,
+        lng: editPost.lng ?? prev.lng,
+        prefecture: editPost.prefecture || prev.prefecture,
+        ward: editPost.ward || prev.ward,
+        town: editPost.town || prev.town,
+      }));
+      return;
+    }
+
+    // 신규 작성 모드: 사용자 주소로 초기 위치 설정
+    if (!isEditMode && addresses && addresses.length > 0) {
       const primaryAddress = addresses.find((addr) => addr.isPrimary) || addresses[0];
       if (primaryAddress) {
         setFormData((prev) => ({
@@ -53,16 +84,16 @@ const SharePostCreatePage: React.FC = () => {
         }));
       }
     }
-  }, [addresses]);
+  }, [addresses, editPost, isEditMode]);
 
-  // 카테고리 한글 매핑
+  // 카테고리 한글 매핑 (백엔드 enum과 일치)
   const categoryLabels: Record<string, string> = {
     FURNITURE: '가구',
     ELECTRONICS: '전자제품',
     CLOTHING: '의류',
     BOOKS: '도서',
-    TOYS: '장난감',
-    KITCHEN: '주방용품',
+    KITCHENWARE: '주방/주방용품',
+    SPORTS: '스포츠/레저',
     ETC: '기타',
   };
 
@@ -142,7 +173,8 @@ const SharePostCreatePage: React.FC = () => {
       newErrors.content = '내용을 입력해주세요.';
     }
 
-    if (images.length === 0) {
+    // 신규 작성 시에는 최소 1장 이미지 필수, 수정 모드에서는 기존 이미지가 있을 수 있으므로 강제하지 않음
+    if (!isEditMode && images.length === 0) {
       newErrors.images = '최소 1장의 이미지를 업로드해주세요.';
     }
 
@@ -150,16 +182,21 @@ const SharePostCreatePage: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const createPostMutation = useMutation({
-    mutationFn: () => sharePostApi.createPost(formData, images),
+  const savePostMutation = useMutation({
+    mutationFn: async () => {
+      if (isEditMode && editPostId) {
+        return await sharePostApi.updatePost(editPostId, formData, images.length > 0 ? images : undefined);
+      }
+      return await sharePostApi.createPost(formData, images);
+    },
     onSuccess: () => {
       navigate('/sharing');
     },
     onError: (error: any) => {
-      console.error('게시글 작성 실패:', error);
+      console.error('게시글 저장 실패:', error);
       setErrors((prev) => ({
         ...prev,
-        submit: error.response?.data?.message || '게시글 작성에 실패했습니다.',
+        submit: error.response?.data?.message || '게시글 저장에 실패했습니다.',
       }));
     },
   });
@@ -171,7 +208,7 @@ const SharePostCreatePage: React.FC = () => {
       return;
     }
 
-    createPostMutation.mutate();
+    savePostMutation.mutate();
   };
 
   const handleCancel = () => {
@@ -187,8 +224,10 @@ const SharePostCreatePage: React.FC = () => {
       <main className="create-main">
         <div className="create-container">
           <div className="create-header">
-            <h1 className="create-title">나눔 글쓰기</h1>
-            <p className="create-subtitle">나눔할 물품을 등록해주세요</p>
+            <h1 className="create-title">{isEditMode ? '나눔 글 수정' : '나눔 글쓰기'}</h1>
+            <p className="create-subtitle">
+              {isEditMode ? '나눔할 물품 정보를 수정합니다.' : '나눔할 물품을 등록해주세요'}
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="create-form">
@@ -221,7 +260,7 @@ const SharePostCreatePage: React.FC = () => {
                 value={formData.content}
                 onChange={handleInputChange}
                 className={`form-textarea ${errors.content ? 'error' : ''}`}
-                placeholder="물품에 대한 상세 설명을 입력해주세요"
+                placeholder={isEditMode ? '수정할 내용을 입력해주세요' : '물품에 대한 상세 설명을 입력해주세요'}
                 rows={8}
                 maxLength={1000}
               />
@@ -323,16 +362,18 @@ const SharePostCreatePage: React.FC = () => {
                 type="button"
                 className="cancel-button"
                 onClick={handleCancel}
-                disabled={createPostMutation.isPending}
+                disabled={savePostMutation.isPending}
               >
                 취소
               </button>
               <button
                 type="submit"
                 className="submit-button"
-                disabled={createPostMutation.isPending}
+                disabled={savePostMutation.isPending}
               >
-                {createPostMutation.isPending ? '등록 중...' : '등록하기'}
+                {savePostMutation.isPending
+                  ? isEditMode ? '수정 중...' : '등록 중...'
+                  : isEditMode ? '수정하기' : '등록하기'}
               </button>
             </div>
           </form>

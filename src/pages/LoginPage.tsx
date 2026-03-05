@@ -32,9 +32,8 @@ const LoginPage: React.FC = () => {
       if (err?.message === 'Network Error' || err?.code === 'ERR_NETWORK') {
         setServerError('네트워크 오류가 발생했습니다. 백엔드 서버가 실행 중인지 확인해주세요. (CORS 문제일 수 있습니다)');
       } else if (err?.response) {
-        // 서버에서 응답이 온 경우
-        const msg = err?.response?.data?.message || `서버 오류: ${err?.response?.status}`;
-        setServerError(msg);
+        // 서버에서 응답이 온 경우: 상태코드와 관계없이 로그인 실패는 동일한 문구로 안내
+        setServerError('이메일 또는 비밀번호를 확인해주세요.');
       } else {
         // 기타 에러
         const msg = err?.message || '로그인에 실패했습니다.';
