@@ -125,8 +125,7 @@ const SignupPage: React.FC = () => {
           })} 
         />
         {errors.password && <p className="error">{errors.password.message}</p>}
-
-        {/* 4. 비밀번호 확인 (새로 추가된 부분) */}
+        
         <label htmlFor="passwordConfirm">비밀번호 확인</label>
         <input 
           id="passwordConfirm" 
@@ -138,7 +137,6 @@ const SignupPage: React.FC = () => {
           })} 
         />
         {errors.passwordConfirm && <p className="error">{errors.passwordConfirm.message}</p>}
-        {/* 성공 메시지 (에러 없고 값이 있을 때) */}
         {!errors.passwordConfirm && watch('passwordConfirm') && (
             <p className="success" style={{ color: 'green', fontSize: '12px', marginTop: '4px' }}>
                 비밀번호가 일치합니다.
@@ -152,7 +150,6 @@ const SignupPage: React.FC = () => {
           {isSubmitting ? '가입 중...' : '회원가입'}
         </button>
 
-        {/* ✅ 민지님이 지키고 싶어했던 그 링크! */}
         <p className="muted">
             이미 계정이 있으신가요? <Link to="/login">로그인</Link>
         </p>

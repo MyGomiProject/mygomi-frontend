@@ -115,6 +115,14 @@ const Header: React.FC = () => {
           <Link to="/integrated-search" className="nav-link">분리수거 정보</Link>
           <Link to="/sharing" className="nav-link">나눔</Link>
           {token && <Link to="/mypage" className="nav-link">마이페이지</Link>}
+
+          {/* 💡 관리자(ADMIN)용 */}
+          {user?.role === 'ADMIN' && (
+            <Link to="/admin/reports" className="nav-link" style={{ fontWeight: 'bold', color: 'green' }}>
+              신고 관리
+            </Link>
+          )}
+
           {token ? (
             <div className="user-menu">
               <div className="header-notification-wrap" ref={dropdownRef}>

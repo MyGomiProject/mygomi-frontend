@@ -8,6 +8,7 @@ interface User {
   id: number;
   email: string;
   nickname: string;
+  role?: 'USER' | 'ADMIN';
   address?: {
     id: number;
     ward: string;
@@ -31,19 +32,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // 공통 로직: 백엔드에서 받은 addresses 배열 중 대표 주소를 추출
  const mapUserWithAddress = (userInfo: any, defaultEmail?: string): User => {
-    const primaryAddress = userInfo.addresses?.find((addr: any) => addr.isPrimary);
+    const addresses = userInfo.addresses ?? (userInfo.address ? [userInfo.address] : []);
+const primaryAddress =
+  addresses.find((addr: any) => addr?.isPrimary) ?? addresses[0];
 
     // 💡 추가된 로직: fullAddress가 "도쿄도 오타구 이케가미" 라면 띄어쓰기로 분리해서 '구'로 끝나는 단어만 추출!
     let extractedWard = '';
+    const full = primaryAddress?.fullAddress ?? '';
+    if (full) {
+      extractedWard = full.split(/\s+/).find((p: string) => p.endsWith('구') || p.endsWith('区')) || '';
+    }
     if (primaryAddress && primaryAddress.fullAddress) {
       const parts = primaryAddress.fullAddress.split(' ');
       extractedWard = parts.find((p: string) => p.endsWith('구')) || '';
     }
 
+    const emailToUse = userInfo.email || defaultEmail || '';
+    const isAdmin = emailToUse === 'admin@example.com';
+
     return {
       id: userInfo.id,
       email: userInfo.email || defaultEmail || '',
       nickname: userInfo.nickname || '',
+      role: isAdmin ? 'ADMIN' : 'USER',
       address: primaryAddress ? {
         id: primaryAddress.id,
         ward: extractedWard,
@@ -52,7 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   };
 
-  // [Helper] 토큰 만료 등 치명적 에러 시 세션 초기화
+  // 토큰 만료 등 치명적 에러 시 세션 초기화
   const clearSession = () => {
     setUser(null);
     setToken(null);
@@ -69,7 +80,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const userInfo = await userApi.getMe();
           console.log('초기 사용자 정보 가져오기 성공:', userInfo);
           
-          // userInfo가 유효한지 확인
           if (userInfo && userInfo.id) {
               setUser(mapUserWithAddress(userInfo));
           } else {
@@ -94,7 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('authToken', accessToken);
       setToken(res.accessToken);
       setAuthToken(res.accessToken);
-      
+
       // 로그인 성공 후 사용자 정보 가져오기
       try {
         const userInfo = await userApi.getMe();
@@ -102,12 +112,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // 여기서도 매핑 함수를 사용하여 주소 정보를 포함시킵니다.
           setUser(mapUserWithAddress(userInfo, payload.email));
         } else {
-          setUser({ id: res.userId, email: payload.email, nickname: '' });
+          setUser({ id: res.userId, email: payload.email, nickname: '', role: payload.email === 'admin@example.com' ? 'ADMIN' : 'USER' });
         }
       } catch (error: any) {
         console.error('사용자 정보 가져오기 실패:', error);
         // 상세 정보 조회 실패 시에도 로그인은 유지 (Fallback)
-        setUser({ id: res.userId, email: payload.email, nickname: '' });
+        setUser({ id: res.userId, email: payload.email, nickname: '', role: payload.email === 'admin@example.com' ? 'ADMIN' : 'USER' });
       }
     } catch (error) {
       console.error('AuthContext login 에러:', error);

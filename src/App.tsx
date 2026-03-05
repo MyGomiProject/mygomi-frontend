@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import HomePage from './pages/HomePage';
 import SharingPage from './pages/SharingPage';
@@ -10,12 +10,25 @@ import MyPage from './pages/MyPage';
 import IntegratedSearchPage from './pages/IntegratedSearchPage';
 import SharePostCreatePage from './pages/SharePostCreatePage';
 import TestPage from './pages/TestPage';
-import { AuthProvider } from './contexts/AuthContext';
+import AdminReportList from './pages/AdminReportList';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ChatNotificationListener from './components/ChatNotificationListener';
 import KeywordAlertPoller from './components/KeywordAlertPoller';
 import './App.css';
 
 const queryClient = new QueryClient();
+
+// 💡 관리자 라우트 보호 컴포넌트
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, token } = useAuth();
+
+  if (!token) return <Navigate to="/login" replace />;
+  if (user?.role !== 'ADMIN') {
+    alert('관리자 권한이 필요합니다.');
+    return <Navigate to="/" replace />;
+  }
+  return <>{children}</>;
+};
 
 function App() {
   return (
@@ -44,6 +57,17 @@ function App() {
               
               {/* 테스트 페이지 (개발용) */}
               <Route path="/test" element={<TestPage />} />
+
+              {/* 💡 관리자 전용 라우트 추가 */}
+              <Route 
+                path="/admin/reports" 
+                element={
+                  <AdminRoute>
+                    <AdminReportList />
+                  </AdminRoute>
+                } 
+              />
+
             </Routes>
           </div>
         </BrowserRouter>

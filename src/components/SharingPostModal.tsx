@@ -104,15 +104,14 @@ const SharingPostModal: React.FC<SharingPostModalProps> = ({ post, isOpen, onClo
       // 쿼리 캐시 업데이트
       queryClient.invalidateQueries({ queryKey: ['my-share-posts'] });
       queryClient.invalidateQueries({ queryKey: ['share-posts'] });
+      queryClient.invalidateQueries({ queryKey: ['nearby-posts'] });
       if (onStatusUpdate) {
         onStatusUpdate(variables.postId, variables.status);
       }
       // DELETED 상태로 변경되면 모달 닫기
       if (variables.status === 'DELETED') {
-        setTimeout(() => {
           onClose();
-        }, 1000);
-      }
+        }
     },
     onError: (error) => {
       console.error('상태 변경 실패:', error);

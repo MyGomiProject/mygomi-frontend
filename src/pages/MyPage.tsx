@@ -203,8 +203,9 @@ const MyPage: React.FC = () => {
   const setPrimaryMutation = useMutation({
     mutationFn: (addressId: number) => addressApi.setPrimaryAddress(addressId),
     onSuccess: () => {
-      // 주소 목록 자동 리페치
-      queryClient.invalidateQueries({ queryKey: ['user-addresses'] });
+      // // 주소 목록 자동 리페치　-->  새로고침으로 수정
+      // queryClient.invalidateQueries({ queryKey: ['user-addresses'] });
+      window.location.reload();
     },
     onError: (error: any) => {
       console.error('대표 주소 변경 실패:', error);

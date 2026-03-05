@@ -35,6 +35,14 @@ const IntegratedSearchPage: React.FC = () => {
   const urlWard = searchParams.get('ward') || DEFAULT_WARD;
 
   const [query, setQuery] = useState(urlQuery);
+  // 로그인 유저인데 아직 주소 정보가 없다면 로딩 중으로 간주
+  const isUserLoading = Boolean(user && !user.address);
+
+    useEffect(() => {
+    console.log("Auth user:", user);
+    console.log("user.address?.ward:", user?.address?.ward);
+    console.log("searchParams ward:", searchParams.get("ward"));
+  }, [user, searchParams]);
 
   // 지역 선택 시 URL을 업데이트 - 문자열을 직접 받기
   const handleWardChange = (newWard: string) => {
@@ -52,6 +60,7 @@ const IntegratedSearchPage: React.FC = () => {
     queryFn: () => itemsApi.searchItems(urlQuery, displayWard, !!user),
     staleTime: 1000 * 60 * 5, // 5분동안은 데이터 유지(재요청x)
     refetchOnWindowFocus: false, 
+    enabled: !isUserLoading,
   });
 
   const today = useMemo(() => {
@@ -64,7 +73,7 @@ const IntegratedSearchPage: React.FC = () => {
   const { data: calendarEvents, isLoading: isCalendarLoading } = useQuery({
     queryKey: ['calendar', addressId, today.getFullYear(), today.getMonth() + 1, !!user],
     queryFn: () => fetchCalendar(addressId, today.getFullYear(), today.getMonth() + 1),
-    enabled: !!urlQuery,
+    enabled: !!urlQuery && !isUserLoading, 
     staleTime: 1000 * 60 * 60, // 1시간
     refetchOnWindowFocus: false,
   });
@@ -139,7 +148,8 @@ const IntegratedSearchPage: React.FC = () => {
     }
   };
 
-  const isLoading = isItemLoading || (urlQuery && isCalendarLoading);
+  const isLoading = isItemLoading || (urlQuery && isCalendarLoading) || isUserLoading;
+
 
   return (
     <div className="home-page">
