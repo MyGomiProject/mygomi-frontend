@@ -80,23 +80,40 @@
 
 /* 2. 지역 선택기 래퍼 (호버 디자인의 핵심) */
 .ward-selector-wrapper {
+  position: relative;
   flex: 0 0 auto;
-  min-width: 110px;
-  height: 40px; /* 💡 서치바 안에서 적당한 높이 차지 */
+  width: 140px;
+  min-width: 140px;
+  height: 40px;
   
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start; /* 트리거·메뉴 모두 왼쪽 정렬 */
   
-  /* 💡 [핵심] 호버 배경이 서치바처럼 둥글게 나오도록 설정 */
   border-radius: 20px; 
   margin-right: 4px;
-  
-  /* 호버 범위가 너무 좁지 않게 패딩 추가 */
-  padding: 0 8px; 
+  padding: 0 8px 0 12px; 
   
   transition: background-color 0.2s ease;
   cursor: pointer;
+}
+
+/* Select 루트가 래퍼 전체 너비를 쓰도록 → 메뉴 left:0 기준이 래퍼와 일치 */
+.ward-selector-wrapper > div {
+  width: 100% !important;
+  max-width: 140px !important;
+}
+
+/* 구 선택 드롭다운 메뉴: 트리거와 왼쪽 맞춤, 같은 너비 */
+.ward-selector-wrapper .ward-select__menu,
+.ward-selector-wrapper [class*="react-select__menu"] {
+  left: 0 !important;
+  right: auto !important;
+  margin-left: 0 !important;
+  width: 140px !important;
+  min-width: 140px !important;
+  max-width: 140px !important;
+  box-sizing: border-box;
 }
 
 /* 🌟 호버 시: 둥근 알약 모양으로 배경색이 뜸 */

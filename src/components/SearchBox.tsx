@@ -60,9 +60,13 @@ const SearchBox: React.FC<SearchBoxProps> = ({
   }),
   menu: (base: any) => ({
     ...base,
+    position: 'absolute' as const,
+    left: 0,
+    right: 'auto',
     borderRadius: '16px',
     boxShadow: '0 6px 20px rgba(0,0,0,0.1)',
-    width: '140px', 
+    width: '140px',
+    minWidth: '140px',
     marginTop: '10px',
     overflow: 'hidden',
   }),
@@ -112,14 +116,16 @@ const SearchBox: React.FC<SearchBoxProps> = ({
 return (
     <div className={`search-container ${showWardSelector ? 'with-ward-selector' : ''}`}>
       {showWardSelector && (
-        <div className="ward-selector-wrapper" style={{ minWidth: '140px' }}>
+        <div className="ward-selector-wrapper">
           <Select
-            options={selectOptions} //
-            styles={customStyles} //
+            classNamePrefix="ward-select"
+            options={selectOptions}
+            styles={customStyles}
             defaultValue={selectOptions.find(o => o.value === selectedWard)}
             onChange={(opt: any) => onWardChange && onWardChange(opt.value)}
-            isSearchable={false} // 타이핑 검색 끄기
-            menuPlacement="bottom" // 🚨 무조건 아래로 열리게 고정
+            isSearchable={false}
+            menuPlacement="bottom"
+            menuPortalTarget={null}
             placeholder="지역 선택"
           />
         </div>
