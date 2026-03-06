@@ -27,13 +27,13 @@
   border-radius: 16px;
   max-width: 800px;
   width: 100%;
-  max-height: 90vh;
+  max-height: 95vh;
   display: flex;
   flex-direction: column;
   position: relative;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   animation: slideUp 0.3s ease-out;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 @keyframes slideUp {
@@ -78,7 +78,7 @@
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .modal-image-section {
@@ -353,22 +353,30 @@
   opacity: 0.6;
 }
 
-/* 스크롤바 스타일링 */
-.sharing-post-modal::-webkit-scrollbar {
+/* 스크롤바 스타일링 (WebKit 계열 브라우저용) */
+.sharing-post-modal::-webkit-scrollbar,
+.modal-content::-webkit-scrollbar,
+.modal-info-section::-webkit-scrollbar {
   width: 8px;
 }
 
-.sharing-post-modal::-webkit-scrollbar-track {
+.sharing-post-modal::-webkit-scrollbar-track,
+.modal-content::-webkit-scrollbar-track,
+.modal-info-section::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 0 16px 16px 0;
 }
 
-.sharing-post-modal::-webkit-scrollbar-thumb {
+.sharing-post-modal::-webkit-scrollbar-thumb,
+.modal-content::-webkit-scrollbar-thumb,
+.modal-info-section::-webkit-scrollbar-thumb {
   background: #66bb6a;
   border-radius: 10px;
 }
 
-.sharing-post-modal::-webkit-scrollbar-thumb:hover {
+.sharing-post-modal::-webkit-scrollbar-thumb:hover,
+.modal-content::-webkit-scrollbar-thumb:hover,
+.modal-info-section::-webkit-scrollbar-thumb:hover {
   background: #4caf50;
 }
 
