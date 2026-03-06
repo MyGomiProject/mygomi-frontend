@@ -29,6 +29,7 @@ interface SharingPost {
   description: string;
   location?: string;
   createdAt: string;
+  updatedAt?: string;
   imageUrl?: string;
   imageUrls?: string[];
   status: 'OPEN' | 'RESERVED' | 'COMPLETED' | 'DELETED';
@@ -124,34 +125,42 @@ const MyPage: React.FC = () => {
     enabled: !!token,
   });
 
-  const myPosts: SharingPost[] = myPostsData?.data
-    .filter((post) => post.status !== 'DELETED') // DELETED 상태 게시물 제외
-    .map((post) => {
-      // 지역 정보 구성 (ward + town)
-      let locationStr = '';
-      if (post.ward) {
-        locationStr = post.ward;
-        if (post.town) {
-          locationStr += ` ${post.town}`;
+  const myPosts: SharingPost[] =
+    myPostsData?.data
+      .filter((post) => post.status !== 'DELETED') // DELETED 상태 게시물 제외
+      .map((post) => {
+        // 지역 정보 구성 (ward + town)
+        let locationStr = '';
+        if (post.ward) {
+          locationStr = post.ward;
+          if (post.town) {
+            locationStr += ` ${post.town}`;
+          }
+        } else if (post.location) {
+          locationStr = post.location;
         }
-      } else if (post.location) {
-        locationStr = post.location;
-      }
 
-      return {
-        id: String(post.id),
-        title: post.title,
-        description: post.description || post.content || '',
-        location: locationStr,
-        createdAt: post.createdAt,
-        imageUrl: post.thumbnailUrl || post.imageUrls?.[0],
-        imageUrls: post.imageUrls || (post.thumbnailUrl ? [post.thumbnailUrl] : []),
-        status: post.status || 'OPEN',
-        category: post.category,
-        author: userInfo?.nickname || '본인',
-        userId: post.userId || userInfo?.id, // 본인 게시글 확인용 (마이페이지는 항상 본인 게시글)
-      };
-    }) || [];
+        return {
+          id: String(post.id),
+          title: post.title,
+          description: post.description || post.content || '',
+          location: locationStr,
+          createdAt: post.createdAt,
+          updatedAt: post.updatedAt || post.createdAt,
+          imageUrl: post.thumbnailUrl || post.imageUrls?.[0],
+          imageUrls: post.imageUrls || (post.thumbnailUrl ? [post.thumbnailUrl] : []),
+          status: post.status || 'OPEN',
+          category: post.category,
+          author: userInfo?.nickname || '본인',
+          userId: post.userId || userInfo?.id, // 본인 게시글 확인용 (마이페이지는 항상 본인 게시글)
+        };
+      })
+      // 최근 수정일(updatedAt)을 기준으로 내림차순 정렬 (없으면 createdAt 사용)
+      .sort((a, b) => {
+        const aDate = new Date(a.updatedAt || a.createdAt).getTime();
+        const bDate = new Date(b.updatedAt || b.createdAt).getTime();
+        return bDate - aDate;
+      }) || [];
 
   const totalPages = myPostsData?.meta ? Math.ceil(myPostsData.meta.total / postsPerPage) : 0;
   const currentPosts = myPosts;
