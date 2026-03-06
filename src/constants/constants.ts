@@ -1,5 +1,5 @@
-export const DEFAULT_WARD = '미나토구'; // 비회원 또는 주소 미설정 시 기본값
-export const DEFAULT_ADDRESS_ID = 1008;
+export const DEFAULT_WARD = '신주쿠구'; // 비회원 또는 주소 미설정 시 기본값
+export const DEFAULT_ADDRESS_ID = 1582;
 
 // 도쿄도 23구 목록 (일본어)
 export const TOKYO_WARDS_JA = [
