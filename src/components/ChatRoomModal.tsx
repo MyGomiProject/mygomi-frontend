@@ -33,7 +33,7 @@ const CHAT_DELETED_ROOM_IDS_KEY = 'chat_deleted_room_ids';
 /** 헤더 알림에서 '확인함'으로 표시한 roomId 목록 (배지/목록에서 제외) */
 export const CHAT_SEEN_NOTIFICATION_ROOM_IDS_KEY = 'chat_seen_notification_room_ids';
 
-function loadRoomMessagesFromStorage(roomId: number): ChatMessage[] {
+export function loadRoomMessagesFromStorage(roomId: number): ChatMessage[] {
   try {
     const raw = localStorage.getItem(CHAT_ROOM_MESSAGES_PREFIX + roomId);
     if (!raw) return [];
@@ -44,7 +44,7 @@ function loadRoomMessagesFromStorage(roomId: number): ChatMessage[] {
   }
 }
 
-function saveRoomMessagesToStorage(roomId: number, messages: ChatMessage[]) {
+export function saveRoomMessagesToStorage(roomId: number, messages: ChatMessage[]) {
   try {
     localStorage.setItem(CHAT_ROOM_MESSAGES_PREFIX + roomId, JSON.stringify(messages));
   } catch (e) {
@@ -242,8 +242,8 @@ function isSameEmail(a: string, b: string): boolean {
   return a.trim().toLowerCase() === b.trim().toLowerCase();
 }
 
-/** 서버 메시지 → 표시용 메시지 (본인/상대 구분) */
-function toDisplayMessage(res: ChatMessageResponse, myEmail: string): ChatMessage {
+/** 서버 메시지 → 표시용 메시지 (본인/상대 구분). 알림/목록에서 수신 메시지 저장 시에도 사용 */
+export function toDisplayMessage(res: ChatMessageResponse, myEmail: string): ChatMessage {
   const isMe =
     myEmail.trim() !== '' &&
     isSameEmail(res.senderEmail || '', myEmail);

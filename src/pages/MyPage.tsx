@@ -68,6 +68,15 @@ const MyPage: React.FC = () => {
     }
   }, [apiRooms, chatPost, chatListVersion]);
 
+  // 새 메시지 도착 시 목록(lastMessage) 갱신: 저장은 ChatNotificationListener에서 하고, 여기서는 쿼리만 무효화
+  useEffect(() => {
+    const handleChatRoomListUpdate = () => {
+      queryClient.invalidateQueries({ queryKey: ['chat-rooms'] });
+    };
+    window.addEventListener('chat-room-list-update', handleChatRoomListUpdate);
+    return () => window.removeEventListener('chat-room-list-update', handleChatRoomListUpdate);
+  }, [queryClient]);
+
   // 로그인하지 않은 경우 로그인 페이지로 리다이렉트
   useEffect(() => {
     if (!token) {

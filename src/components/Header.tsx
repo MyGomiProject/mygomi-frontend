@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { chatApi } from '../api/chat';
 import {
@@ -18,6 +18,7 @@ import './Header.css';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user, token, logout } = useAuth();
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [seenNotificationRoomIds, setSeenNotificationRoomIds] = useState<number[]>(() =>
@@ -68,6 +69,14 @@ const Header: React.FC = () => {
     window.addEventListener('chat-notification-received', handleChatNotification);
     return () => window.removeEventListener('chat-notification-received', handleChatNotification);
   }, []);
+
+  useEffect(() => {
+    const handleChatRoomListUpdate = () => {
+      queryClient.invalidateQueries({ queryKey: ['chat-rooms'] });
+    };
+    window.addEventListener('chat-room-list-update', handleChatRoomListUpdate);
+    return () => window.removeEventListener('chat-room-list-update', handleChatRoomListUpdate);
+  }, [queryClient]);
 
   useEffect(() => {
     const handler = () => setKeywordAlerts(getKeywordAlertUnseen());
@@ -163,15 +172,9 @@ const Header: React.FC = () => {
                                 className="header-notification-item-btn"
                                 onClick={() => handleChatRoomClick(room)}
                               >
-                                <span className="header-notification-item-title">{room.title}</span>
-                                {room.author && (
-                                  <span className="header-notification-item-author">↔ {room.author}</span>
-                                )}
-                                {room.lastMessage && (
-                                  <span className="header-notification-item-preview">
-                                    {room.lastMessage.length > 25 ? room.lastMessage.slice(0, 25) + '…' : room.lastMessage}
-                                  </span>
-                                )}
+                                <span className="header-notification-item-preview">
+                                  {room.author || '상대방'}님이 {room.title} 게시글에 채팅을 보냈습니다.
+                                </span>
                               </button>
                             </li>
                           ))}
