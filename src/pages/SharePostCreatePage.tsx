@@ -32,6 +32,8 @@ const SharePostCreatePage: React.FC = () => {
   
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
+  const [existingImageFiles, setExistingImageFiles] = useState<File[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // 사용자 주소 정보 가져오기
@@ -51,6 +53,16 @@ const SharePostCreatePage: React.FC = () => {
     enabled: isEditMode,
   });
 
+  // 이미지 URL을 전체 URL로 변환하는 함수 (SharingPostModal과 동일한 규칙)
+  const getImageUrl = (url: string | undefined): string => {
+    if (!url) return '';
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    const baseURL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+    return `${baseURL}${url.startsWith('/') ? url : `/${url}`}`;
+  };
+
   // 주소 정보 또는 수정 대상 게시글이 로드되면 폼 초기값 설정
   useEffect(() => {
     // 수정 모드: 기존 게시글 정보를 우선 사용
@@ -67,6 +79,10 @@ const SharePostCreatePage: React.FC = () => {
         ward: editPost.ward || prev.ward,
         town: editPost.town || prev.town,
       }));
+      if (Array.isArray(editPost.imageUrls) && editPost.imageUrls.length > 0) {
+        const converted = editPost.imageUrls.map((url) => getImageUrl(url)).filter(Boolean);
+        setExistingImageUrls(converted);
+      }
       return;
     }
 
@@ -85,6 +101,33 @@ const SharePostCreatePage: React.FC = () => {
       }
     }
   }, [addresses, editPost, isEditMode]);
+
+  // 수정 모드에서 기존 이미지 URL을 File 객체로 변환 (백엔드에 전체 이미지 세트를 다시 전송하기 위함)
+  useEffect(() => {
+    const loadExistingImages = async () => {
+      if (!isEditMode || existingImageUrls.length === 0) {
+        setExistingImageFiles([]);
+        return;
+      }
+      try {
+        const files = await Promise.all(
+          existingImageUrls.map(async (url, index) => {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const fileNameFromUrl = url.split('/').pop() || `image-${index + 1}.jpg`;
+            const file = new File([blob], fileNameFromUrl, { type: blob.type || 'image/jpeg' });
+            return file;
+          })
+        );
+        setExistingImageFiles(files);
+      } catch (error) {
+        console.error('기존 이미지 로딩 실패:', error);
+        setExistingImageFiles([]);
+      }
+    };
+
+    void loadExistingImages();
+  }, [isEditMode, existingImageUrls]);
 
   // 카테고리 한글 매핑 (백엔드 enum과 일치)
   const categoryLabels: Record<string, string> = {
@@ -119,7 +162,7 @@ const SharePostCreatePage: React.FC = () => {
     if (!e.target.files) return;
 
     const files = Array.from(e.target.files);
-    const totalImages = images.length + files.length;
+    const totalImages = existingImageUrls.length + images.length + files.length;
 
     if (totalImages > MAX_IMAGES) {
       setErrors((prev) => ({
@@ -151,6 +194,11 @@ const SharePostCreatePage: React.FC = () => {
     }
   };
 
+  const handleRemoveExistingImage = (index: number) => {
+    setExistingImageUrls((prev) => prev.filter((_, i) => i !== index));
+    setExistingImageFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleRemoveImage = (index: number) => {
     const newImages = images.filter((_, i) => i !== index);
     const newPreviews = imagePreviews.filter((_, i) => i !== index);
@@ -173,9 +221,13 @@ const SharePostCreatePage: React.FC = () => {
       newErrors.content = '내용을 입력해주세요.';
     }
 
-    // 신규 작성 시에는 최소 1장 이미지 필수, 수정 모드에서는 기존 이미지가 있을 수 있으므로 강제하지 않음
+    // 신규 작성 시에는 최소 1장 이미지 필수
+    // 수정 모드에서는 기존 이미지 + 새 이미지 합산 기준으로 1장 이상 권장
+    const totalImageCount = (isEditMode ? existingImageUrls.length : 0) + images.length;
     if (!isEditMode && images.length === 0) {
       newErrors.images = '최소 1장의 이미지를 업로드해주세요.';
+    } else if (isEditMode && totalImageCount === 0) {
+      newErrors.images = '최소 1장의 이미지는 유지하거나 새로 업로드해주세요.';
     }
 
     setErrors(newErrors);
@@ -185,7 +237,12 @@ const SharePostCreatePage: React.FC = () => {
   const savePostMutation = useMutation({
     mutationFn: async () => {
       if (isEditMode && editPostId) {
-        return await sharePostApi.updatePost(editPostId, formData, images.length > 0 ? images : undefined);
+        const allImages: File[] = [...existingImageFiles, ...images];
+        return await sharePostApi.updatePost(
+          editPostId,
+          formData,
+          allImages.length > 0 ? allImages : undefined
+        );
       }
       return await sharePostApi.createPost(formData, images);
     },
@@ -297,10 +354,23 @@ const SharePostCreatePage: React.FC = () => {
                 <span className="image-limit">(최대 {MAX_IMAGES}장)</span>
               </label>
               <div className="image-upload-section">
-                {imagePreviews.length > 0 && (
+                {(existingImageUrls.length > 0 || imagePreviews.length > 0) && (
                   <div className="image-preview-grid">
+                    {existingImageUrls.map((url, index) => (
+                      <div key={`existing-${index}`} className="image-preview-item">
+                        <img src={url} alt={`기존 이미지 ${index + 1}`} />
+                        <button
+                          type="button"
+                          className="remove-image-button"
+                          onClick={() => handleRemoveExistingImage(index)}
+                          aria-label="기존 이미지 삭제"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
                     {imagePreviews.map((preview, index) => (
-                      <div key={index} className="image-preview-item">
+                      <div key={`new-${index}`} className="image-preview-item">
                         <img src={preview} alt={`미리보기 ${index + 1}`} />
                         <button
                           type="button"
