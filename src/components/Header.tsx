@@ -13,6 +13,7 @@ import {
   markKeywordAlertSeen,
   type KeywordAlertItem,
 } from '../utils/keywordAlert';
+import { getSodaiLink } from '../constants/sodaiLinks';
 import BellIcon from './BellIcon';
 import './Header.css';
 
@@ -116,6 +117,9 @@ const Header: React.FC = () => {
   // 닉네임이 있으면 닉네임, 없으면 이메일 앞부분 표시
   const displayName = user?.nickname || user?.email?.split('@')[0] || '사용자';
 
+  // 👇 사용자의 '구(ward)' 정보에 맞는 대형 쓰레기 링크 가져오기
+  const sodaiLink = getSodaiLink((user as any)?.address?.ward || (user as any)?.ward);
+
   return (
     <header className="header">
       <div className="header-container">
@@ -127,6 +131,11 @@ const Header: React.FC = () => {
         </div>
         <nav className="header-nav">
           <Link to="/integrated-search" className="nav-link">분리수거 정보</Link>
+          {token && (
+            <a href={sodaiLink} target="_blank" rel="noopener noreferrer" className="nav-link">
+              대형 쓰레기
+            </a>
+          )}
           {token && <Link to="/sharing" className="nav-link">나눔</Link>}
           {token && <Link to="/mypage" className="nav-link">마이페이지</Link>}
 
