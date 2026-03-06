@@ -1,6 +1,67 @@
 import React, { useState, useEffect } from 'react';
 import './ChangePasswordModal.css';
 
+const EyeIcon: React.FC = () => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <path
+      d="M1.5 12C2.7 8.5 6 6 12 6s9.3 2.5 10.5 6c-1.2 3.5-4.5 6-10.5 6S2.7 15.5 1.5 12Z"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <circle
+      cx="12"
+      cy="12"
+      r="3.2"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    />
+  </svg>
+);
+
+const EyeOffIcon: React.FC = () => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <path
+      d="M4.5 4.5 19.5 19.5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    />
+    <path
+      d="M3 8.25C4.4 6.4 7.1 5 12 5c4.9 0 7.6 1.4 9 3.25"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M21 15.75C19.6 17.6 16.9 19 12 19c-4.9 0-7.6-1.4-9-3.25"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 interface ChangePasswordModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -122,7 +183,7 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
                 onClick={() => togglePasswordVisibility('current')}
                 disabled={isSubmitting}
               >
-                {showPasswords.current ? '👁️' : '👁️‍🗨️'}
+                {showPasswords.current ? <EyeOffIcon /> : <EyeIcon />}
               </button>
             </div>
           </div>
@@ -147,7 +208,7 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
                 onClick={() => togglePasswordVisibility('new')}
                 disabled={isSubmitting}
               >
-                {showPasswords.new ? '👁️' : '👁️‍🗨️'}
+                {showPasswords.new ? <EyeOffIcon /> : <EyeIcon />}
               </button>
             </div>
           </div>
@@ -172,7 +233,7 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
                 onClick={() => togglePasswordVisibility('confirm')}
                 disabled={isSubmitting}
               >
-                {showPasswords.confirm ? '👁️' : '👁️‍🗨️'}
+                {showPasswords.confirm ? <EyeOffIcon /> : <EyeIcon />}
               </button>
             </div>
           </div>
